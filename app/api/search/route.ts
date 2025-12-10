@@ -8,7 +8,7 @@ export async function GET(request: Request) {
 
   // 1. Try to get the key from the User (passed from frontend header)
   const userKey = request.headers.get('x-serp-key');
-  
+
   // 2. Fallback to Server Environment Variable (if you want to pay for usage)
   const finalKey = userKey || process.env.SERP_API_KEY;
 
@@ -21,13 +21,14 @@ export async function GET(request: Request) {
   try {
     const res = await fetch(url);
     const data = await res.json();
-    
+
     if (data.error) {
       return NextResponse.json({ error: data.error }, { status: 400 });
     }
 
     return NextResponse.json(data);
   } catch (error) {
+    console.error("Search API Error:", error);
     return NextResponse.json({ error: 'Failed to fetch data from provider' }, { status: 500 });
   }
 }
