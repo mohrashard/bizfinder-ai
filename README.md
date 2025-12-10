@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 BizFinder AI
 
-## Getting Started
+![BizFinder AI Logo](/public/logooo.png)
 
-First, run the development server:
+> **Supercharge Your Lead Generation with Artificial Intelligence.**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**BizFinder AI** is a cutting-edge lead generation tool designed for digital marketing agencies and sales professionals. It leverages the power of **Google Gemini 2.0** and **SerpAPI** to find high-value business prospects that traditional search engines miss.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🧐 The Problem
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+ finding quality leads is manual, tedious, and inefficient. 
+- **Google Maps** is great for finding locations but lacks "negative filters." You can't search for *"businesses that DO NOT have a website"* or *"restaurants with LOW ratings."*
+- **Digital Agencies** need these exact clients—businesses that are underserved and need help with web design, SEO, or reputation management.
+- Manual searching wastes hours of valuable time.
 
-## Learn More
+## 💡 The Solution
 
-To learn more about Next.js, take a look at the following resources:
+**BizFinder AI** automates this entire process. 
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Natural Language Search**: Just type what you want in plain English.
+   - *"Find dentists in Miami with no website"*
+   - *"Mechanics in Dubai with bad ratings"*
+2. **AI Interpretation**: We use **Google Gemini AI** to understand your intent and extract strict criteria (e.g., `filter: { noWebsite: true }`).
+3. **Real-Time Data**: We fetch live data from Google Maps via **SerpAPI**, ensuring you get the most up-to-date contact info, hours, and status.
+4. **Smart Filtering**: The app automatically filters the raw data to match your specific needs, revealing hidden opportunities.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🛠️ Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Built with the latest modern web technologies for performance and experience.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Glassmorphism & Dark Mode)
+- **AI Engine**: [Google Gemini 2.0 Flash](https://aistudio.google.com/)
+- **Data Source**: [SerpAPI](https://serpapi.com/) (Google Maps Engine)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Language**: TypeScript
+
+---
+
+## ⚙️ How It Works (Architecture)
+
+1. **User Input**: The user enters a query like *"Italian restaurants in Chicago without social media."*
+2. **Gemini Processing**: The app sends this text to Google Gemini. The AI parses it into a structured JSON object:
+   ```json
+   {
+     "category": "Italian restaurants",
+     "location": "Chicago",
+     "filters": { "noSocials": true }
+   }
+   ```
+3. **Data Retrieval**: utilizing SerpAPI, the app searches Google Maps for the category and location.
+4. **Client-Side Filtering**: The application receives the raw list and applies the strict "negative filters" (checking for missing website fields, parsing social media links, analyzing ratings) in real-time.
+5. **Presentation**: Qualified leads are displayed in a premium, responsive UI ready for CSV export.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+ installed.
+- API Keys for **Gemini** (free tier available) and **SerpAPI**.
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/mohrashard/bizfinder-ai.git
+   cd bizfinder-ai
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in Browser:**
+   Navigate to `http://localhost:3000`.
+
+### Configuration
+You don't need environment variables to start! 
+1. Launch the app.
+2. Click on **"Configure APIs"** in the top right corner.
+3. Paste your **Gemini API Key** and **SerpAPI Key**.
+4. Keys are saved securely in your browser's LocalStorage for convenience.
+
+---
+
+## 📖 How To Use
+
+1. **Go to the "Finder" page**.
+2. **Enter a query**. Be specific about what you are looking for.
+   - *Example 1*: "Gyms in London with less than 4 stars" (Great for Reputation Management)
+   - *Example 2*: "Plumbers in Toronto no website" (Great for Web Design agencies)
+   - *Example 3*: "Coffee shops in Austin open now"
+3. **Review Results**: The app will show you exactly which businesses match your criteria.
+4. **Export**: Click "Export CSV" to download your leads and import them into your CRM or cold email tool.
+
+---
+
+## 👨‍💻 Developed By
+
+**Mohamed Rashard Rizmi**
+
+Designed and built with a focus on modern aesthetics, user experience, and solving real-world business problems.
+
+---
+
+*© 2025 BizFinder AI.*

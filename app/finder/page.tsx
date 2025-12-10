@@ -11,16 +11,21 @@ import {
     Download,
     Settings,
     Loader2,
-    Building2,
+
     Clock,
     CheckCircle2,
     XCircle,
     AlertTriangle,
     Filter,
     ArrowDownWideNarrow,
-    Plus
+    Plus,
+    Menu,
+    X,
+    Home,
+    BookOpen
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // --- Types ---
 
@@ -224,6 +229,7 @@ export default function BusinessFinderApp() {
 
     // UI State
     const [showSettings, setShowSettings] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isUsingFallback, setIsUsingFallback] = useState(false);
 
@@ -594,7 +600,7 @@ export default function BusinessFinderApp() {
             </div>
 
             {/* Navbar */}
-            <nav className="border-b border-white/10 sticky top-0 z-20 backdrop-blur-md bg-slate-900/50">
+            <nav className="border-b border-white/10 sticky top-0 z-20 backdrop-blur-md bg-slate-900/80">
                 {/* Selection Tooltip */}
                 {selection && (
                     <div
@@ -611,14 +617,26 @@ export default function BusinessFinderApp() {
                 )}
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Link href="/" className="bg-gradient-to-tr from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg shadow-blue-500/20 cursor-pointer hover:scale-105 transition-transform">
-                            <Building2 className="w-6 h-6 text-white" />
+                    <div className="flex items-center gap-3">
+                        <Link href="/" className="relative w-12 h-12 sm:w-14 sm:h-14 bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-white/10 shadow-xl overflow-hidden cursor-pointer hover:scale-105 transition-transform hover:shadow-blue-500/20 group">
+                            <Image
+                                src="/real_logo.png"
+                                alt="BizFinder AI Logo"
+                                fill
+                                className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
                         </Link>
-                        <Link href="/" className="font-bold text-2xl tracking-tight text-white cursor-pointer hover:text-blue-200 transition-colors">BizFinder AI</Link>
+                        <Link href="/" className="font-bold text-xl sm:text-2xl tracking-tight text-white cursor-pointer hover:text-blue-200 transition-colors">BizFinder AI</Link>
                     </div>
-                    <div className="flex items-center gap-6">
-                        <Link href="/guide" className="text-slate-400 hover:text-white transition-colors font-medium text-sm">How to Use</Link>
+
+                    {/* Desktop Menu */}
+                    <div className="hidden md:flex items-center gap-6">
+                        <Link href="/" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
+                            <Home className="w-4 h-4" /> Home
+                        </Link>
+                        <Link href="/guide" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
+                            <BookOpen className="w-4 h-4" /> How to Use
+                        </Link>
                         <button
                             onClick={() => setShowSettings(true)}
                             className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium hover:bg-white/10 px-3 py-2 rounded-lg"
@@ -627,7 +645,45 @@ export default function BusinessFinderApp() {
                             {(!apiKeys.gemini || !apiKeys.serpApi) ? "Configure APIs (Demo Mode)" : "Settings"}
                         </button>
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        className="md:hidden text-slate-300 hover:text-white p-2"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    >
+                        {isMobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+                    </button>
                 </div>
+
+                {/* Mobile Navigation Dropdown */}
+                {isMobileMenuOpen && (
+                    <div className="md:hidden absolute top-full left-0 w-full bg-slate-900 border-b border-white/10 p-4 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
+                        <Link
+                            href="/"
+                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <Home className="w-5 h-5" /> Home
+                        </Link>
+                        <Link
+                            href="/guide"
+                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <BookOpen className="w-5 h-5" /> How to Use
+                        </Link>
+                        <button
+                            onClick={() => {
+                                setShowSettings(true);
+                                setIsMobileMenuOpen(false);
+                            }}
+                            className="w-full text-left p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium flex items-center gap-2"
+                        >
+                            <Settings className="w-5 h-5" />
+                            {(!apiKeys.gemini || !apiKeys.serpApi) ? "Configure APIs (Demo Mode)" : "Settings"}
+                        </button>
+                    </div>
+                )}
             </nav>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">

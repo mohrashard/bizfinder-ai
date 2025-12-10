@@ -1,10 +1,14 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Building2, Search, ArrowRight, Globe, Database, Zap } from 'lucide-react';
+import { Search, ArrowRight, Globe, Database, Zap, Menu, X, Home, BookOpen } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LandingPage() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-slate-900 text-white font-sans overflow-x-hidden selection:bg-blue-500 selection:text-white">
 
@@ -15,24 +19,74 @@ export default function LandingPage() {
       </div>
 
       {/* Navbar */}
-      <nav className="relative z-10 border-b border-white/10 backdrop-blur-sm">
+      <nav className="relative z-20 border-b border-white/10 backdrop-blur-md bg-slate-900/70 sticky top-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
-              <Building2 className="w-6 h-6 text-white" />
+
+          {/* Logo Section */}
+          <div className="flex items-center gap-3">
+            <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-white/10 shadow-xl overflow-hidden group hover:shadow-blue-500/20 transition-all duration-300">
+              <Image
+                src="/real_logo.png"
+                alt="BizFinder AI Logo"
+                fill
+                className="object-cover group-hover:scale-110 transition-transform duration-500"
+              />
             </div>
-            <span className="font-bold text-2xl tracking-tight text-white">BizFinder AI</span>
+            <span className="font-bold text-xl sm:text-2xl tracking-tight text-white">BizFinder AI</span>
           </div>
-          <div className="flex items-center gap-6">
-            <Link href="/guide" className="text-slate-300 hover:text-white transition-colors font-medium">How to Use</Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="/" className="text-slate-300 hover:text-white transition-colors font-medium text-sm lg:text-base flex items-center gap-2">
+              <Home className="w-4 h-4" /> Home
+            </Link>
+            <Link href="/guide" className="text-slate-300 hover:text-white transition-colors font-medium text-sm lg:text-base flex items-center gap-2">
+              <BookOpen className="w-4 h-4" /> How to Use
+            </Link>
             <Link
               href="/finder"
-              className="bg-white text-slate-900 px-5 py-2.5 rounded-full font-bold hover:bg-blue-50 transition-colors shadow-lg shadow-white/10 flex items-center gap-2"
+              className="bg-white text-slate-900 px-6 py-2.5 rounded-full font-bold hover:bg-blue-50 transition-all shadow-lg shadow-white/10 flex items-center gap-2 hover:scale-105 active:scale-95 text-sm lg:text-base"
             >
               Launch App <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden text-slate-300 hover:text-white p-2"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+          </button>
         </div>
+
+        {/* Mobile Navigation Dropdown */}
+        {/* We use overflow-hidden and max-h logic for smooth expansion, or just conditional rendering with animation classes */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full bg-slate-900 border-b border-white/10 p-4 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
+            <Link
+              href="/"
+              className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium text-lg"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Home className="w-5 h-5" /> Home
+            </Link>
+            <Link
+              href="/guide"
+              className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium text-lg"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <BookOpen className="w-5 h-5" /> How to Use
+            </Link>
+            <Link
+              href="/finder"
+              className="block p-3 bg-blue-600 text-white text-center rounded-xl font-bold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Launch App
+            </Link>
+          </div>
+        )}
       </nav>
 
       <main className="relative z-10">
