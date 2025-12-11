@@ -20,7 +20,8 @@ import {
     CheckCircle2,
     XCircle,
     Download,
-    ArrowLeft
+    ArrowLeft,
+    Info
 } from 'lucide-react';
 
 // --- Types (Mirrored from finder/page.tsx) ---
@@ -162,6 +163,9 @@ export default function LeadsPage() {
                         <Link href="/guide" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
                             <BookOpen className="w-4 h-4" /> How to Use
                         </Link>
+                        <Link href="/about" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
+                            <Info className="w-4 h-4" /> About Us
+                        </Link>
                     </div>
 
                     <button className="md:hidden text-slate-300 hover:text-white p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -179,6 +183,9 @@ export default function LeadsPage() {
                         </Link>
                         <Link href="/guide" className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
                             <BookOpen className="w-5 h-5" /> How to Use
+                        </Link>
+                        <Link href="/about" className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
+                            <Info className="w-5 h-5" /> About Us
                         </Link>
                     </div>
                 )}

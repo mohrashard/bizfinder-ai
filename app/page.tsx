@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Search, ArrowRight, Globe, Database, Zap, Menu, X, Home, BookOpen } from 'lucide-react';
+import { Search, ArrowRight, Globe, Database, Zap, Menu, X, Home, BookOpen, Info } from 'lucide-react';
 import Image from 'next/image';
 
 export default function LandingPage() {
@@ -43,6 +43,9 @@ export default function LandingPage() {
             <Link href="/guide" className="text-slate-300 hover:text-white transition-colors font-medium text-sm lg:text-base flex items-center gap-2">
               <BookOpen className="w-4 h-4" /> How to Use
             </Link>
+            <Link href="/about" className="text-slate-300 hover:text-white transition-colors font-medium text-sm lg:text-base flex items-center gap-2">
+              <Info className="w-4 h-4" /> About Us
+            </Link>
             <Link href="/leads" className="text-slate-300 hover:text-white transition-colors font-medium text-sm lg:text-base flex items-center gap-2">
               <Database className="w-4 h-4" /> My Leads
             </Link>
@@ -80,6 +83,13 @@ export default function LandingPage() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <BookOpen className="w-5 h-5" /> How to Use
+            </Link>
+            <Link
+              href="/about"
+              className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium text-lg"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Info className="w-5 h-5" /> About Us
             </Link>
             <Link
               href="/leads"

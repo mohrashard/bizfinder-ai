@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowLeft, ExternalLink, CheckCircle2, Key, Globe, ArrowRight, Menu, X, Home, BookOpen } from 'lucide-react';
+import { ArrowLeft, ExternalLink, CheckCircle2, Key, Globe, ArrowRight, Menu, X, Home, BookOpen, Info } from 'lucide-react';
 import Image from 'next/image';
 
 
@@ -33,6 +33,10 @@ export default function GuidePage() {
                         <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-medium group">
                             <Home className="w-5 h-5" />
                             <span className="hidden sm:inline">Home</span>
+                        </Link>
+                        <Link href="/about" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-medium group">
+                            <Info className="w-5 h-5" />
+                            <span className="hidden sm:inline">About</span>
                         </Link>
                     </div>
 
@@ -73,6 +77,13 @@ export default function GuidePage() {
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
                             <Home className="w-5 h-5" /> Home
+                        </Link>
+                        <Link
+                            href="/about"
+                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <Info className="w-5 h-5" /> About
                         </Link>
                         <Link
                             href="/finder"

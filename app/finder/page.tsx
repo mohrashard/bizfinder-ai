@@ -25,7 +25,8 @@ import {
     Sparkles,
     CheckCircle,
     XOctagon,
-    Target
+    Target,
+    Info
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -1081,6 +1082,9 @@ export default function BusinessFinderApp() {
                         <Link href="/guide" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
                             <BookOpen className="w-4 h-4" /> How to Use
                         </Link>
+                        <Link href="/about" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
+                            <Info className="w-4 h-4" /> About
+                        </Link>
                         <button
                             onClick={() => setShowSettings(true)}
                             className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium hover:bg-white/10 px-3 py-2 rounded-lg"
@@ -1122,6 +1126,13 @@ export default function BusinessFinderApp() {
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
                             <BookOpen className="w-5 h-5" /> How to Use (AI Audit)
+                        </Link>
+                        <Link
+                            href="/about"
+                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <Info className="w-5 h-5" /> About Us
                         </Link>
                         <button
                             onClick={() => {
