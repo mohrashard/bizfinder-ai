@@ -1312,7 +1312,7 @@ export default function BusinessFinderApp() {
                                                 idx={idx}
                                                 crmEntry={crmData[getBusinessId(biz)]}
                                                 updateCRM={updateCRM}
-                                                updateCRM={updateCRM}
+
                                                 handleGenerateAudit={handleGenerateAudit}
                                                 handleOpenCrm={setEditingCrmBiz}
                                             />
