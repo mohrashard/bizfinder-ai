@@ -11,7 +11,6 @@ import {
     Download,
     Settings,
     Loader2,
-
     Clock,
     CheckCircle2,
     XCircle,
@@ -22,7 +21,11 @@ import {
     Menu,
     X,
     Home,
-    BookOpen
+    BookOpen,
+    Sparkles,
+    CheckCircle,
+    XOctagon,
+    Target
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -51,6 +54,8 @@ interface Business {
         twitter?: string;
         linkedin?: string;
     };
+    opportunity_score?: number;
+    opportunity_factors?: string[];
 }
 
 interface SearchParams {
@@ -69,6 +74,76 @@ interface ApiKeys {
     gemini: string;
     serpApi: string;
 }
+
+interface AuditReport {
+    summary: string;
+    strengths: string[];
+    weaknesses: string[];
+    actionable_plan: string[];
+}
+
+
+
+interface CRMEntry {
+    business: Business; // Store full business data so we can display it on the Leads page without searching
+    status: 'New' | 'Contacted' | 'Call Later' | 'Good Lead' | 'High Value';
+    notes: string;
+    savedAt: number;
+}
+
+// --- Logic: Opportunity Score Calculation ---
+
+const calculateOpportunity = (biz: Partial<Business>): { score: number, factors: string[] } => {
+    let score = 0;
+    const factors: string[] = [];
+
+    // 1. Missing Website (+30)
+    if (!biz.website) {
+        score += 30;
+        factors.push("Missing Website");
+    }
+
+    // 2. Missing Socials (+20)
+    const hasSocials = biz.socials && Object.values(biz.socials).some(v => !!v);
+    if (!hasSocials) {
+        score += 20;
+        factors.push("Missing Social Media");
+    }
+
+    // 3. Low Ratings
+    const rating = biz.rating || 0;
+    if (rating > 0 && rating < 3.5) {
+        score += 15;
+        factors.push("Low Rating (< 3.5)");
+    } else if (rating >= 3.5 && rating < 4.0) {
+        score += 5;
+        factors.push("Mediocre Rating (< 4.0)");
+    }
+
+    // 4. Low Review Count
+    const reviews = biz.reviews || 0;
+    if (reviews < 10) {
+        score += 20;
+        factors.push("Very Low Reviews (< 10)");
+    } else if (reviews < 50) {
+        score += 10;
+        factors.push("Low Reviews (< 50)");
+    }
+
+    // 5. Missing Email
+    if (!biz.email) {
+        score += 10;
+        factors.push("Missing Email");
+    }
+
+    // 6. Poor Online Presence Bonus (No Web + No Socials)
+    if (!biz.website && !hasSocials) {
+        score += 5;
+        factors.push("Poor Online Presence");
+    }
+
+    return { score: Math.min(score, 100), factors };
+};
 
 // --- Mock Data Service (for Demo Mode) ---
 
@@ -102,6 +177,14 @@ const processSerpResult = (item: any): Business => {
         if (checkDomain(url, 'linkedin.com')) socials.linkedin = url;
     });
 
+    const { score, factors } = calculateOpportunity({
+        website,
+        socials,
+        rating: item.rating,
+        reviews: item.reviews,
+        email: item.email
+    });
+
     return {
         title: item.title,
         address: item.address,
@@ -114,7 +197,9 @@ const processSerpResult = (item: any): Business => {
         hours: item.hours,
         gps_coordinates: item.gps_coordinates,
         email: item.email,
-        socials
+        socials,
+        opportunity_score: score,
+        opportunity_factors: factors
     };
 };
 
@@ -213,7 +298,242 @@ const MOCK_BUSINESSES: Business[] = [
         hours: "9:00 AM - 9:00 PM",
         socials: { facebook: "https://fb.com/marinadental", instagram: "https://instagr.am/marinadental" }
     }
-];
+].map(b => ({ ...b, ...calculateOpportunity(b) }));
+
+// --- Helpers ---
+
+const getBusinessId = (biz: Business) => `${biz.title}|${biz.address}`;
+
+const BusinessRow = React.memo(({
+    biz,
+    crmEntry,
+    idx,
+    updateCRM,
+    handleGenerateAudit
+}: {
+    biz: Business;
+    crmEntry: CRMEntry | undefined;
+    idx: number;
+    updateCRM: (biz: Business, field: any, value: any) => void;
+    handleGenerateAudit: (biz: Business) => void;
+}) => {
+    return (
+        <tr className="hover:bg-slate-700/30 transition-colors">
+            {/* Business Name Column */}
+            <td className="px-6 py-4 align-top">
+                <div className="flex items-start gap-2 group/name">
+                    <div>
+                        <div className="font-bold text-white text-base mb-1">{biz.title}</div>
+                        <div className="text-xs text-slate-300 bg-slate-700/50 border border-slate-600 inline-block px-2 py-0.5 rounded-full">
+                            {biz.type || 'Business'}
+                        </div>
+                    </div>
+                    <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(biz.title + " " + biz.address)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1.5 bg-slate-700 hover:bg-blue-600 hover:text-white rounded-md text-slate-400"
+                        title="Verify on Google"
+                    >
+                        <Search className="w-3.5 h-3.5" />
+                    </a>
+                </div>
+            </td>
+
+            {/* Details Column */}
+            <td className="px-6 py-4 align-top max-w-xs">
+                <div className="flex items-start gap-2 mb-1">
+                    <MapPin className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-slate-300">{biz.address}</span>
+                </div>
+                {biz.hours && (
+                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-2">
+                        <Clock className="w-3 h-3" />
+                        {biz.hours}
+                    </div>
+                )}
+            </td>
+
+            {/* Contact Column */}
+            <td className="px-6 py-4 align-top">
+                <div className="space-y-1">
+                    {biz.phone ? (
+                        <div className="flex items-center gap-2 text-slate-300 text-sm">
+                            <Phone className="w-3.5 h-3.5 text-blue-400" />
+                            <span className="select-all hover:text-white transition-colors cursor-pointer">{biz.phone}</span>
+                        </div>
+                    ) : (
+                        <span className="text-slate-600 italic text-xs">No phone</span>
+                    )}
+                    {biz.email ? (
+                        <div className="flex items-center gap-2 text-slate-300 text-sm">
+                            <span className="text-xs font-bold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-1 rounded">@</span>
+                            <span className="select-all hover:text-white transition-colors cursor-pointer">{biz.email}</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2 text-slate-600 text-xs">
+                            <span className="opacity-50">@</span>
+                            <span className="italic">No Email</span>
+                        </div>
+                    )}
+                </div>
+            </td>
+
+            {/* Status & Socials Column */}
+            <td className="px-6 py-4 align-top">
+                <div className="space-y-3">
+                    {/* Open Status */}
+                    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border w-fit
+                        ${biz.open_state?.toLowerCase().includes('open')
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            : biz.open_state?.toLowerCase().includes('close')
+                                ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                : 'bg-slate-700/50 text-slate-400 border-slate-600'}`}
+                    >
+                        {biz.open_state?.toLowerCase().includes('open') ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        {biz.open_state || 'Unknown'}
+                    </div>
+
+                    {/* Social Icons */}
+                    <div className="flex gap-2">
+                        {biz.socials && Object.keys(biz.socials).length > 0 ? (
+                            <>
+                                {biz.socials.facebook && <a href={biz.socials.facebook} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
+                                {biz.socials.instagram && <a href={biz.socials.instagram} target="_blank" rel="noreferrer" className="text-pink-400 hover:text-pink-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
+                                {biz.socials.twitter && <a href={biz.socials.twitter} target="_blank" rel="noreferrer" className="text-sky-400 hover:text-sky-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
+                                {biz.socials.linkedin && <a href={biz.socials.linkedin} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-400 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
+                            </>
+                        ) : (
+                            <span className="text-xs text-slate-600 italic">No Socials Found</span>
+                        )}
+                    </div>
+                </div>
+            </td>
+
+            {/* CRM Column */}
+            <td className="px-6 py-4 align-top w-64">
+                <div className="space-y-2">
+                    <div className="relative">
+                        <select
+                            value={crmEntry?.status || 'New'}
+                            onChange={(e) => updateCRM(biz, 'status', e.target.value)}
+                            className={`w-full text-xs font-bold px-3 py-2 rounded-lg border-none ring-1 transition-all appearance-none cursor-pointer focus:ring-2 focus:ring-offset-1 focus:ring-offset-slate-900
+                                ${(crmEntry?.status === 'Contacted') ? 'bg-blue-500/20 text-blue-300 ring-blue-500/50 focus:ring-blue-500' :
+                                    (crmEntry?.status === 'Call Later') ? 'bg-amber-500/20 text-amber-300 ring-amber-500/50 focus:ring-amber-500' :
+                                        (crmEntry?.status === 'Good Lead') ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/50 focus:ring-emerald-500' :
+                                            (crmEntry?.status === 'High Value') ? 'bg-violet-500/20 text-violet-300 ring-violet-500/50 focus:ring-violet-500' :
+                                                'bg-slate-700 text-slate-400 ring-slate-600 focus:ring-slate-500'
+                                }`}
+                        >
+                            <option value="New">⚡ New Lead</option>
+                            <option value="Contacted">✉️ Contacted</option>
+                            <option value="Call Later">📞 Call Later</option>
+                            <option value="Good Lead">✅ Good Lead</option>
+                            <option value="High Value">💎 High Value</option>
+                        </select>
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-current opacity-70">
+                            <ArrowDownWideNarrow className="w-3 h-3" />
+                        </div>
+                    </div>
+
+                    <textarea
+                        value={crmEntry?.notes || ''}
+                        onChange={(e) => updateCRM(biz, 'notes', e.target.value)}
+                        placeholder="Add specific notes..."
+                        className="w-full h-24 bg-slate-900/80 border border-slate-700/80 rounded-lg p-3 text-xs text-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none placeholder-slate-600 transition-colors"
+                    />
+                </div>
+            </td>
+
+            {/* Opportunity Score Column */}
+            <td className="px-6 py-4 align-top">
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                        <div className="relative w-12 h-12 flex items-center justify-center">
+                            <svg className="w-full h-full transform -rotate-90">
+                                <circle
+                                    cx="24"
+                                    cy="24"
+                                    r="20"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                    fill="transparent"
+                                    className="text-slate-700"
+                                />
+                                <circle
+                                    cx="24"
+                                    cy="24"
+                                    r="20"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                    fill="transparent"
+                                    strokeDasharray={2 * Math.PI * 20}
+                                    strokeDashoffset={2 * Math.PI * 20 * (1 - (biz.opportunity_score || 0) / 100)}
+                                    className={`${(biz.opportunity_score || 0) > 70 ? 'text-emerald-500' : (biz.opportunity_score || 0) > 40 ? 'text-amber-500' : 'text-slate-500'} transition-all duration-1000 ease-out`}
+                                />
+                            </svg>
+                            <span className={`absolute inset-0 flex items-center justify-center text-sm font-bold ${(biz.opportunity_score || 0) > 70 ? 'text-emerald-400' : (biz.opportunity_score || 0) > 40 ? 'text-amber-400' : 'text-slate-400'}`}>
+                                {biz.opportunity_score}
+                            </span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold text-slate-300">Potential</span>
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Score</span>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1 w-32">
+                        {(biz.opportunity_factors || []).slice(0, 2).map((f, i) => (
+                            <div key={i} className="text-[9px] bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded text-slate-400 whitespace-nowrap truncate max-w-[120px]" title={f}>
+                                {f}
+                            </div>
+                        ))}
+                        {(biz.opportunity_factors?.length || 0) > 2 && (
+                            <span className="text-[9px] text-blue-400 cursor-help" title={biz.opportunity_factors?.slice(2).join(', ')}>
+                                +{biz.opportunity_factors!.length - 2} more
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </td>
+
+            {/* Web & Rating Column (Right Aligned) */}
+            <td className="px-6 py-4 align-top text-right">
+                <div className="flex flex-col items-end gap-2">
+                    {biz.website ? (
+                        <a
+                            href={biz.website}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 text-xs hover:underline"
+                        >
+                            {biz.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]} <Globe className="w-3 h-3" />
+                        </a>
+                    ) : (
+                        <span className="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded text-xs font-medium border border-rose-500/20">
+                            No Website
+                        </span>
+                    )}
+
+                    <div className="flex items-center gap-1 mt-1 justify-end">
+                        <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                        <span className="font-bold text-slate-200">{biz.rating || 'N/A'}</span>
+                        <span className="text-xs text-slate-500">({biz.reviews || 0})</span>
+                    </div>
+
+                    {/* Audit Button */}
+                    <button
+                        onClick={() => handleGenerateAudit(biz)}
+                        className="mt-3 flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium shadow-lg shadow-violet-500/20 transform hover:scale-105 transition-all"
+                    >
+                        <Sparkles className="w-3 h-3" /> AI Audit
+                    </button>
+                </div>
+            </td>
+        </tr>
+    );
+}, (prev, next) => {
+    return prev.biz === next.biz && prev.crmEntry === next.crmEntry && prev.updateCRM === next.updateCRM;
+});
 
 // --- Main Component ---
 
@@ -242,7 +562,13 @@ export default function BusinessFinderApp() {
         hasSocials: false,
         noSocials: false
     });
-    const [sortBy, setSortBy] = useState<'relevance' | 'rating' | 'reviews'>('relevance');
+    const [sortBy, setSortBy] = useState<'relevance' | 'rating' | 'reviews' | 'opportunity'>('opportunity');
+
+    // Audit State
+    const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+    const [auditReport, setAuditReport] = useState<AuditReport | null>(null);
+    const [isAuditing, setIsAuditing] = useState(false);
+    const [auditError, setAuditError] = useState<string | null>(null);
 
     // API Keys state
     const [apiKeys, setApiKeys] = useState<ApiKeys>({
@@ -260,6 +586,48 @@ export default function BusinessFinderApp() {
                 serpApi: savedSerp || ''
             });
         }
+    }, []);
+
+    // --- CRM State & Logic ---
+    const [crmData, setCrmData] = useState<Record<string, CRMEntry>>({});
+
+    // Load CRM data on mount
+    useEffect(() => {
+        const savedCRM = localStorage.getItem('bf_crm_data');
+        if (savedCRM) {
+            try {
+                setCrmData(JSON.parse(savedCRM));
+            } catch (e) {
+                console.error("Failed to load CRM data", e);
+            }
+        }
+    }, []);
+
+    const updateCRM = React.useCallback((biz: Business, field: keyof Omit<CRMEntry, 'business' | 'savedAt'>, value: string) => {
+        const id = getBusinessId(biz);
+        setCrmData(prev => {
+            const currentEntry = prev[id] || {
+                business: biz,
+                status: 'New',
+                notes: '',
+                savedAt: Date.now()
+            };
+
+            // If the entry didn't exist, we just created it with the business data.
+            // If it did exist, we update the field.
+
+            const newData = {
+                ...prev,
+                [id]: {
+                    ...currentEntry,
+                    [field]: value,
+                    savedAt: currentEntry.savedAt || Date.now(), // Preserve original save time or set if missing
+                    business: biz // Ensure latest business data is stored
+                }
+            };
+            localStorage.setItem('bf_crm_data', JSON.stringify(newData));
+            return newData;
+        });
     }, []);
 
     // --- Text Selection Tooltip Logic ---
@@ -348,10 +716,6 @@ export default function BusinessFinderApp() {
             return { category: userQuery, location: '', filters: {} };
         }
     };
-
-    // --- Logic: 2b. Process & Enrich SerpAPI Results ---
-
-
 
     // --- Logic: 2. Search Businesses (Backend + Proxy Fallback) ---
 
@@ -507,6 +871,7 @@ export default function BusinessFinderApp() {
     const handleError = (err: unknown) => {
         console.warn("Search failed, falling back to mock data.");
 
+        // Fallback to demo data
         const demoData = [...MOCK_BUSINESSES];
         setRawResults(demoData);
         setIsUsingFallback(true);
@@ -517,6 +882,64 @@ export default function BusinessFinderApp() {
             setError("Live connection blocked. Showing DEMO results. Deploy the '/app/api/search/route.ts' file to Vercel to fix this.");
         }
     };
+
+    // --- Logic: 7. Generative AI Audit ---
+
+    const handleGenerateAudit = React.useCallback(async (biz: Business) => {
+        if (!apiKeys.gemini) {
+            alert("Please configure your Gemini API Key in Settings to use this feature.");
+            return;
+        }
+
+        setSelectedBusiness(biz);
+        setAuditReport(null);
+        setIsAuditing(true);
+        setAuditError(null);
+
+        try {
+            const prompt = `
+        You are a Digital Marketing Expert. Analyze this business lead and provide a JSON audit report.
+        
+        Business Data:
+        ${JSON.stringify(biz, null, 2)}
+        
+        Task:
+        1. Analyze their online presence (Website, Socials, Ratings, Reviews).
+        2. Identify key strengths and critical weaknesses.
+        3. Create a 3-step actionable plan to improve their digital footprint.
+        
+        Return ONLY valid JSON. Structure:
+        {
+            "summary": "A 2-sentence executive summary of their current status.",
+            "strengths": ["List 3 key strengths"],
+            "weaknesses": ["List 3 key weaknesses/missing assets"],
+            "actionable_plan": ["Step 1 detailed action", "Step 2 detailed action", "Step 3 detailed action"]
+        }
+      `;
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKeys.gemini}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+
+            const data = await response.json();
+
+            if (!data.candidates || !data.candidates[0].content) {
+                throw new Error("AI failed to generate report.");
+            }
+
+            const textBlock = data.candidates[0].content.parts[0].text;
+            const jsonString = textBlock.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
+            setAuditReport(JSON.parse(jsonString));
+
+        } catch (err) {
+            console.error("Audit Error:", err);
+            setAuditError("Failed to generate audit. Please try again.");
+        } finally {
+            setIsAuditing(false);
+        }
+    }, [apiKeys.gemini]);
 
     // --- Logic: 5. Client-Side Filtering & Sorting ---
 
@@ -549,6 +972,8 @@ export default function BusinessFinderApp() {
             res.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         } else if (sortBy === 'reviews') {
             res.sort((a, b) => (b.reviews || 0) - (a.reviews || 0));
+        } else if (sortBy === 'opportunity') {
+            res.sort((a, b) => (b.opportunity_score || 0) - (a.opportunity_score || 0));
         }
 
         return res;
@@ -559,7 +984,7 @@ export default function BusinessFinderApp() {
     const handleExport = () => {
         if (filteredResults.length === 0) return;
 
-        const headers = ['Name', 'Type', 'Address', 'Phone', 'Email', 'Website', 'Socials', 'Rating', 'Reviews', 'Status'];
+        const headers = ['Name', 'Type', 'Address', 'Phone', 'Email', 'Website', 'Socials', 'Rating', 'Reviews', 'Status', 'Opportunity Score'];
         const rows = filteredResults.map(b => [
             `"${b.title.replace(/"/g, '""')}"`,
             `"${b.type || ''}"`,
@@ -570,7 +995,10 @@ export default function BusinessFinderApp() {
             `"${Object.values(b.socials || {}).join(', ') || ''}"`,
             b.rating || '',
             b.reviews || '',
-            `"${b.open_state || ''}"`
+            b.rating || '',
+            b.reviews || '',
+            `"${b.open_state || ''}"`,
+            b.opportunity_score || 0
         ]);
 
         const csvContent = [
@@ -595,8 +1023,8 @@ export default function BusinessFinderApp() {
 
             {/* Decorative Background Elements */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse"></div>
-                <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-600/10 rounded-full blur-[100px] animate-pulse delay-1000"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[80px]"></div>
+                <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-600/10 rounded-full blur-[60px]"></div>
             </div>
 
             {/* Navbar */}
@@ -633,6 +1061,9 @@ export default function BusinessFinderApp() {
                     <div className="hidden md:flex items-center gap-6">
                         <Link href="/" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
                             <Home className="w-4 h-4" /> Home
+                        </Link>
+                        <Link href="/leads" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
+                            <Target className="w-4 h-4" /> My Leads
                         </Link>
                         <Link href="/guide" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
                             <BookOpen className="w-4 h-4" /> How to Use
@@ -817,6 +1248,7 @@ export default function BusinessFinderApp() {
                                     className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
                                 >
                                     <option value="relevance">Relevance</option>
+                                    <option value="opportunity">Opportunity Score (High to Low)</option>
                                     <option value="rating">Highest Rated</option>
                                     <option value="reviews">Most Reviews</option>
                                 </select>
@@ -847,129 +1279,21 @@ export default function BusinessFinderApp() {
                                             <th className="px-6 py-4">Details</th>
                                             <th className="px-6 py-4">Contact</th>
                                             <th className="px-6 py-4">Status & Socials</th>
+                                            <th className="px-6 py-4">CRM</th>
+                                            <th className="px-6 py-4">Opportunity</th>
                                             <th className="px-6 py-4 text-right">Web & Rating</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-700">
                                         {filteredResults.map((biz, idx) => (
-                                            <tr key={`${biz.title}-${idx}`} className="hover:bg-slate-700/30 transition-colors">
-                                                {/* Business Name Column */}
-                                                <td className="px-6 py-4 align-top">
-                                                    <div className="flex items-start gap-2 group/name">
-                                                        <div>
-                                                            <div className="font-bold text-white text-base mb-1">{biz.title}</div>
-                                                            <div className="text-xs text-slate-300 bg-slate-700/50 border border-slate-600 inline-block px-2 py-0.5 rounded-full">
-                                                                {biz.type || 'Business'}
-                                                            </div>
-                                                        </div>
-                                                        <a
-                                                            href={`https://www.google.com/search?q=${encodeURIComponent(biz.title + " " + biz.address)}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1.5 bg-slate-700 hover:bg-blue-600 hover:text-white rounded-md text-slate-400"
-                                                            title="Verify on Google"
-                                                        >
-                                                            <Search className="w-3.5 h-3.5" />
-                                                        </a>
-                                                    </div>
-                                                </td>
-
-                                                {/* Details Column */}
-                                                <td className="px-6 py-4 align-top max-w-xs">
-                                                    <div className="flex items-start gap-2 mb-1">
-                                                        <MapPin className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
-                                                        <span className="text-slate-300">{biz.address}</span>
-                                                    </div>
-                                                    {biz.hours && (
-                                                        <div className="flex items-center gap-2 text-xs text-slate-500 mt-2">
-                                                            <Clock className="w-3 h-3" />
-                                                            {biz.hours}
-                                                        </div>
-                                                    )}
-                                                </td>
-
-                                                {/* Contact Column */}
-                                                <td className="px-6 py-4 align-top">
-                                                    <div className="space-y-1">
-                                                        {biz.phone ? (
-                                                            <div className="flex items-center gap-2 text-slate-300 text-sm">
-                                                                <Phone className="w-3.5 h-3.5 text-blue-400" />
-                                                                <span className="select-all hover:text-white transition-colors cursor-pointer">{biz.phone}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-slate-600 italic text-xs">No phone</span>
-                                                        )}
-                                                        {biz.email ? (
-                                                            <div className="flex items-center gap-2 text-slate-300 text-sm">
-                                                                <span className="text-xs font-bold text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 px-1 rounded">@</span>
-                                                                <span className="select-all hover:text-white transition-colors cursor-pointer">{biz.email}</span>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center gap-2 text-slate-600 text-xs">
-                                                                <span className="opacity-50">@</span>
-                                                                <span className="italic">No Email</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-
-                                                {/* Status & Socials Column */}
-                                                <td className="px-6 py-4 align-top">
-                                                    <div className="space-y-3">
-                                                        {/* Open Status */}
-                                                        <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border w-fit
-                              ${biz.open_state?.toLowerCase().includes('open')
-                                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                                                : biz.open_state?.toLowerCase().includes('close')
-                                                                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                                                                    : 'bg-slate-700/50 text-slate-400 border-slate-600'}`}
-                                                        >
-                                                            {biz.open_state?.toLowerCase().includes('open') ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                                                            {biz.open_state || 'Unknown'}
-                                                        </div>
-
-                                                        {/* Social Icons */}
-                                                        <div className="flex gap-2">
-                                                            {biz.socials && Object.keys(biz.socials).length > 0 ? (
-                                                                <>
-                                                                    {biz.socials.facebook && <a href={biz.socials.facebook} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
-                                                                    {biz.socials.instagram && <a href={biz.socials.instagram} target="_blank" rel="noreferrer" className="text-pink-400 hover:text-pink-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
-                                                                    {biz.socials.twitter && <a href={biz.socials.twitter} target="_blank" rel="noreferrer" className="text-sky-400 hover:text-sky-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
-                                                                    {biz.socials.linkedin && <a href={biz.socials.linkedin} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-400 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
-                                                                </>
-                                                            ) : (
-                                                                <span className="text-xs text-slate-600 italic">No Socials Found</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                                {/* Web & Rating Column (Right Aligned) */}
-                                                <td className="px-6 py-4 align-top text-right">
-                                                    <div className="flex flex-col items-end gap-2">
-                                                        {biz.website ? (
-                                                            <a
-                                                                href={biz.website}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 text-xs hover:underline"
-                                                            >
-                                                                {biz.website.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0]} <Globe className="w-3 h-3" />
-                                                            </a>
-                                                        ) : (
-                                                            <span className="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded text-xs font-medium border border-rose-500/20">
-                                                                No Website
-                                                            </span>
-                                                        )}
-
-                                                        <div className="flex items-center gap-1 mt-1 justify-end">
-                                                            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                                                            <span className="font-bold text-slate-200">{biz.rating || 'N/A'}</span>
-                                                            <span className="text-xs text-slate-500">({biz.reviews || 0})</span>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                            <BusinessRow
+                                                key={`${biz.title}-${idx}`}
+                                                biz={biz}
+                                                idx={idx}
+                                                crmEntry={crmData[getBusinessId(biz)]}
+                                                updateCRM={updateCRM}
+                                                handleGenerateAudit={handleGenerateAudit}
+                                            />
                                         ))}
                                     </tbody>
                                 </table>
@@ -987,10 +1311,117 @@ export default function BusinessFinderApp() {
                                 Load More Results
                             </button>
                         </div>
-
                     </div>
                 )}
             </main>
+
+            {/* Audit Modal */}
+            {selectedBusiness && (
+                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200 flex flex-col">
+
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
+                            <div>
+                                <h3 className="font-bold text-xl text-white flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-violet-400" /> AI Digital Audit
+                                </h3>
+                                <p className="text-sm text-slate-400">Analysis for <span className="font-semibold text-white">{selectedBusiness.title}</span></p>
+                            </div>
+                            <button onClick={() => { setSelectedBusiness(null); setAuditReport(null); }} className="text-slate-400 hover:text-white transition-colors">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6 space-y-6 flex-1">
+                            {isAuditing ? (
+                                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                                    <div className="relative">
+                                        <div className="w-16 h-16 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin"></div>
+                                        <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-violet-400 animate-pulse" />
+                                    </div>
+                                    <p className="text-slate-300 font-medium animate-pulse">Generating comprehensive report...</p>
+                                </div>
+                            ) : auditError ? (
+                                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl text-center">
+                                    <p>{auditError}</p>
+                                    <button onClick={() => handleGenerateAudit(selectedBusiness!)} className="mt-2 text-sm underline hover:text-rose-300">Try Again</button>
+                                </div>
+                            ) : auditReport ? (
+                                <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-500">
+
+                                    {/* Summary */}
+                                    <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                                        <h4 className="text-blue-400 text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                                            <Sparkles className="w-4 h-4" /> Executive Summary
+                                        </h4>
+                                        <p className="text-slate-300 leading-relaxed">{auditReport.summary}</p>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        {/* Strengths */}
+                                        <div className="bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-xl">
+                                            <h4 className="text-emerald-400 text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                <CheckCircle className="w-4 h-4" /> Key Strengths
+                                            </h4>
+                                            <ul className="space-y-2">
+                                                {auditReport.strengths.map((str, i) => (
+                                                    <li key={i} className="flex items-start gap-2 text-slate-300 text-sm">
+                                                        <span className="text-emerald-500 mt-1">•</span> {str}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        {/* Weaknesses */}
+                                        <div className="bg-rose-500/5 border border-rose-500/10 p-4 rounded-xl">
+                                            <h4 className="text-rose-400 text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                <XOctagon className="w-4 h-4" /> Critical Gaps
+                                            </h4>
+                                            <ul className="space-y-2">
+                                                {auditReport.weaknesses.map((weak, i) => (
+                                                    <li key={i} className="flex items-start gap-2 text-slate-300 text-sm">
+                                                        <span className="text-rose-500 mt-1">•</span> {weak}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Plan */}
+                                    <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
+                                        <h4 className="text-violet-400 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <Target className="w-4 h-4" /> Recommended Strategy
+                                        </h4>
+                                        <div className="space-y-4">
+                                            {auditReport.actionable_plan.map((step, i) => (
+                                                <div key={i} className="flex items-start gap-3">
+                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-600/20 text-violet-400 flex items-center justify-center font-bold text-xs border border-violet-500/30">
+                                                        {i + 1}
+                                                    </div>
+                                                    <p className="text-slate-300 text-sm pt-0.5">{step}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            ) : null}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-6 py-4 border-t border-slate-800/50 bg-slate-900/50 flex justify-end">
+                            <button
+                                onClick={() => { setSelectedBusiness(null); }}
+                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors"
+                            >
+                                Close Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Settings Modal */}
             {showSettings && (

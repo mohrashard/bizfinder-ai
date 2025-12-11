@@ -43,6 +43,9 @@ export default function LandingPage() {
             <Link href="/guide" className="text-slate-300 hover:text-white transition-colors font-medium text-sm lg:text-base flex items-center gap-2">
               <BookOpen className="w-4 h-4" /> How to Use
             </Link>
+            <Link href="/leads" className="text-slate-300 hover:text-white transition-colors font-medium text-sm lg:text-base flex items-center gap-2">
+              <Database className="w-4 h-4" /> My Leads
+            </Link>
             <Link
               href="/finder"
               className="bg-white text-slate-900 px-6 py-2.5 rounded-full font-bold hover:bg-blue-50 transition-all shadow-lg shadow-white/10 flex items-center gap-2 hover:scale-105 active:scale-95 text-sm lg:text-base"
@@ -77,6 +80,13 @@ export default function LandingPage() {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <BookOpen className="w-5 h-5" /> How to Use
+            </Link>
+            <Link
+              href="/leads"
+              className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium text-lg"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Database className="w-5 h-5" /> My Leads
             </Link>
             <Link
               href="/finder"
