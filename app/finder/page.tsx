@@ -309,13 +309,15 @@ const BusinessRow = React.memo(({
     crmEntry,
     idx,
     updateCRM,
-    handleGenerateAudit
+    handleGenerateAudit,
+    handleOpenCrm
 }: {
     biz: Business;
     crmEntry: CRMEntry | undefined;
     idx: number;
     updateCRM: (biz: Business, field: any, value: any) => void;
     handleGenerateAudit: (biz: Business) => void;
+    handleOpenCrm: (biz: Business) => void;
 }) => {
     return (
         <tr className="hover:bg-slate-700/30 transition-colors">
@@ -412,7 +414,7 @@ const BusinessRow = React.memo(({
 
             {/* CRM Column */}
             <td className="px-6 py-4 align-top w-64">
-                <div className="space-y-2">
+                <div className="hidden md:block space-y-2">
                     <div className="relative">
                         <select
                             value={crmEntry?.status || 'New'}
@@ -443,6 +445,14 @@ const BusinessRow = React.memo(({
                         className="w-full h-24 bg-slate-900/80 border border-slate-700/80 rounded-lg p-3 text-xs text-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none placeholder-slate-600 transition-colors"
                     />
                 </div>
+
+                {/* Mobile Button */}
+                <button
+                    onClick={() => handleOpenCrm(biz)}
+                    className="md:hidden w-full flex items-center justify-center gap-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 text-xs font-bold py-2.5 rounded-lg transition-colors shadow-sm"
+                >
+                    <Target className="w-3.5 h-3.5" /> Manage Lead
+                </button>
             </td>
 
             {/* Opportunity Score Column */}
@@ -532,7 +542,7 @@ const BusinessRow = React.memo(({
         </tr>
     );
 }, (prev, next) => {
-    return prev.biz === next.biz && prev.crmEntry === next.crmEntry && prev.updateCRM === next.updateCRM;
+    return prev.biz === next.biz && prev.crmEntry === next.crmEntry && prev.updateCRM === next.updateCRM && prev.handleOpenCrm === next.handleOpenCrm;
 });
 
 // --- Main Component ---
@@ -569,6 +579,9 @@ export default function BusinessFinderApp() {
     const [auditReport, setAuditReport] = useState<AuditReport | null>(null);
     const [isAuditing, setIsAuditing] = useState(false);
     const [auditError, setAuditError] = useState<string | null>(null);
+
+    // CRM Mobile Modal State
+    const [editingCrmBiz, setEditingCrmBiz] = useState<Business | null>(null);
 
     // API Keys state
     const [apiKeys, setApiKeys] = useState<ApiKeys>({
@@ -1299,7 +1312,9 @@ export default function BusinessFinderApp() {
                                                 idx={idx}
                                                 crmEntry={crmData[getBusinessId(biz)]}
                                                 updateCRM={updateCRM}
+                                                updateCRM={updateCRM}
                                                 handleGenerateAudit={handleGenerateAudit}
+                                                handleOpenCrm={setEditingCrmBiz}
                                             />
                                         ))}
                                     </tbody>
@@ -1424,6 +1439,70 @@ export default function BusinessFinderApp() {
                                 className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors"
                             >
                                 Close Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CRM Modal (Mobile) */}
+            {editingCrmBiz && (
+                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
+                            <h3 className="font-bold text-lg text-white">Manage Lead</h3>
+                            <button onClick={() => setEditingCrmBiz(null)} className="text-slate-400 hover:text-white transition-colors">
+                                <XCircle className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                                <h4 className="font-bold text-white mb-1">{editingCrmBiz.title}</h4>
+                                <div className="text-xs text-slate-400">{editingCrmBiz.address}</div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status</label>
+                                <div className="relative">
+                                    <select
+                                        value={crmData[getBusinessId(editingCrmBiz)]?.status || 'New'}
+                                        onChange={(e) => updateCRM(editingCrmBiz, 'status', e.target.value)}
+                                        className={`w-full text-sm font-bold px-4 py-3 rounded-xl border-none ring-1 transition-all appearance-none cursor-pointer focus:ring-2
+                                            ${(crmData[getBusinessId(editingCrmBiz)]?.status === 'Contacted') ? 'bg-blue-500/20 text-blue-300 ring-blue-500/50 focus:ring-blue-500' :
+                                                (crmData[getBusinessId(editingCrmBiz)]?.status === 'Call Later') ? 'bg-amber-500/20 text-amber-300 ring-amber-500/50 focus:ring-amber-500' :
+                                                    (crmData[getBusinessId(editingCrmBiz)]?.status === 'Good Lead') ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/50 focus:ring-emerald-500' :
+                                                        (crmData[getBusinessId(editingCrmBiz)]?.status === 'High Value') ? 'bg-violet-500/20 text-violet-300 ring-violet-500/50 focus:ring-violet-500' :
+                                                            'bg-slate-800 text-slate-300 ring-slate-700 focus:ring-slate-500'
+                                            }`}
+                                    >
+                                        <option value="New">⚡ New Lead</option>
+                                        <option value="Contacted">✉️ Contacted</option>
+                                        <option value="Call Later">📞 Call Later</option>
+                                        <option value="Good Lead">✅ Good Lead</option>
+                                        <option value="High Value">💎 High Value</option>
+                                    </select>
+                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-current opacity-70">
+                                        <ArrowDownWideNarrow className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Notes</label>
+                                <textarea
+                                    value={crmData[getBusinessId(editingCrmBiz)]?.notes || ''}
+                                    onChange={(e) => updateCRM(editingCrmBiz, 'notes', e.target.value)}
+                                    placeholder="Add specific notes about this lead..."
+                                    className="w-full h-32 bg-slate-800 border border-slate-700 rounded-xl p-4 text-sm text-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none placeholder-slate-600"
+                                />
+                            </div>
+                        </div>
+                        <div className="px-6 py-4 bg-slate-800/50 border-t border-slate-800 text-center">
+                            <button
+                                onClick={() => setEditingCrmBiz(null)}
+                                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-blue-600/20"
+                            >
+                                Done
                             </button>
                         </div>
                     </div>
