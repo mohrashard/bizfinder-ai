@@ -1097,11 +1097,18 @@ export default function BusinessFinderApp() {
                             <Home className="w-5 h-5" /> Home
                         </Link>
                         <Link
+                            href="/leads"
+                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <Target className="w-5 h-5" /> My Leads (CRM)
+                        </Link>
+                        <Link
                             href="/guide"
                             className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
-                            <BookOpen className="w-5 h-5" /> How to Use
+                            <BookOpen className="w-5 h-5" /> How to Use (AI Audit)
                         </Link>
                         <button
                             onClick={() => {
