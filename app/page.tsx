@@ -32,7 +32,7 @@ export default function LandingPage() {
               "price": "0",
               "priceCurrency": "USD"
             },
-            "description": "AI-powered tool for digital agencies to find local business leads with no websites or social media presence."
+            "description": "AI-powered tool for digital agencies to find, analyze, and track local business leads with a built-in CRM."
           })
         }}
       />
@@ -153,7 +153,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-xl text-slate-400 max-w-2xl mb-12 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
-            Instantly find high-value business leads based on specific criteria like "No Website", "Low Ratings", or "Missing Social Media". Perfect for digital marketing agencies.
+            Instantly find, analyze, and <span className="text-blue-400 font-semibold">save</span> high-value business leads. Filter by "No Website" or "Low Ratings" and manage your prospects in our built-in CRM.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
@@ -187,8 +187,8 @@ export default function LandingPage() {
               },
               {
                 icon: <Database className="w-8 h-8 text-emerald-400" />,
-                title: "Smart Filtering",
-                desc: "Filter by ratings, social media presence, and operational status to find the best prospects."
+                title: "CRM & Lead Management",
+                desc: "Filter results, save prospects to your personal dashboard, add notes, and export to CSV."
               }
             ].map((feature, idx) => (
               <div

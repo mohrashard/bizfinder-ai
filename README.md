@@ -25,6 +25,7 @@
 2. **AI Interpretation**: We use **Google Gemini AI** to understand your intent and extract strict criteria (e.g., `filter: { noWebsite: true }`).
 3. **Real-Time Data**: We fetch live data from Google Maps via **SerpAPI**, ensuring you get the most up-to-date contact info, hours, and status.
 4. **Smart Filtering**: The app automatically filters the raw data to match your specific needs, revealing hidden opportunities.
+5. **Built-in CRM**: Save interesting leads directly to your personal "My Leads" dashboard to track and export later.
 
 ---
 
@@ -54,7 +55,8 @@ Built with the latest modern web technologies for performance and experience.
    ```
 3. **Data Retrieval**: utilizing SerpAPI, the app searches Google Maps for the category and location.
 4. **Client-Side Filtering**: The application receives the raw list and applies the strict "negative filters" (checking for missing website fields, parsing social media links, analyzing ratings) in real-time.
-5. **Presentation**: Qualified leads are displayed in a premium, responsive UI ready for CSV export.
+5. **Lead Management**: Users can "Save" promising leads to their local storage, view them in the "My Leads" tab, adding notes or status updates (e.g. "Contacted").
+6. **Export**: Both search results and saved leads can be exported to CSV.
 
 ---
 
@@ -102,7 +104,9 @@ You don't need environment variables to start!
    - *Example 2*: "Plumbers in Toronto no website" (Great for Web Design agencies)
    - *Example 3*: "Coffee shops in Austin open now"
 3. **Review Results**: The app will show you exactly which businesses match your criteria.
-4. **Export**: Click "Export CSV" to download your leads and import them into your CRM or cold email tool.
+4. **Save Leads**: Click the "Save" button on any result to add it to your personal list.
+5. **Manage Leads**: Go to the **"My Leads"** page to view your saved prospects, add notes, or remove them.
+6. **Export**: Click "Export CSV" to download your leads and import them into your CRM or cold email tool.
 
 ---
 
