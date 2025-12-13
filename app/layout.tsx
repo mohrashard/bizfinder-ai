@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "google62484fe723fdb242",
+    google: "v27FCR5J3XGYK0EjtOjh47hthxOwSHXi8Lg7yIwkdT8",
   },
   alternates: {
     canonical: "https://bizfinder-theta.vercel.app",
