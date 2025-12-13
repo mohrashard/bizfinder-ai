@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-verification-code", // Placeholder for user to fill
+    google: "google62484fe723fdb242",
   },
   alternates: {
     canonical: "https://bizfinder-theta.vercel.app",
