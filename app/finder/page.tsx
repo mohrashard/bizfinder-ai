@@ -151,7 +151,7 @@ const calculateOpportunity = (biz: Partial<Business>): { score: number, factors:
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const processSerpResult = (item: any): Business => {
     const socials: Business['socials'] = {};
-    const website = item.website;
+    let website = item.website;
     const links = Array.isArray(item.links) ? item.links : [];
 
     // Helper to detect domain
@@ -159,12 +159,17 @@ const processSerpResult = (item: any): Business => {
     const checkDomain = (url: any, domain: string) =>
         (typeof url === 'string') && url.toLowerCase().includes(domain);
 
-    // 1. Check main website
+    // 1. Check main website - if it's actually a social link, move it to socials and clear website
     if (website && typeof website === 'string') {
-        if (checkDomain(website, 'facebook.com')) socials.facebook = website;
-        else if (checkDomain(website, 'instagram.com')) socials.instagram = website;
-        else if (checkDomain(website, 'twitter.com') || checkDomain(website, 'x.com')) socials.twitter = website;
-        else if (checkDomain(website, 'linkedin.com')) socials.linkedin = website;
+        let isSocial = false;
+        if (checkDomain(website, 'facebook.com')) { socials.facebook = website; isSocial = true; }
+        else if (checkDomain(website, 'instagram.com')) { socials.instagram = website; isSocial = true; }
+        else if (checkDomain(website, 'twitter.com') || checkDomain(website, 'x.com')) { socials.twitter = website; isSocial = true; }
+        else if (checkDomain(website, 'linkedin.com')) { socials.linkedin = website; isSocial = true; }
+
+        if (isSocial) {
+            website = undefined;
+        }
     }
 
     // 2. Check "links" array from SerpAPI (sometimes provided)
@@ -190,7 +195,7 @@ const processSerpResult = (item: any): Business => {
         title: item.title,
         address: item.address,
         phone: item.phone,
-        website: item.website,
+        website: website, // Use the potentially screened website
         rating: item.rating,
         reviews: item.reviews,
         type: item.type,
@@ -413,46 +418,17 @@ const BusinessRow = React.memo(({
                 </div>
             </td>
 
-            {/* CRM Column */}
-            <td className="px-6 py-4 align-top w-64">
-                <div className="hidden md:block space-y-2">
-                    <div className="relative">
-                        <select
-                            value={crmEntry?.status || 'New'}
-                            onChange={(e) => updateCRM(biz, 'status', e.target.value)}
-                            className={`w-full text-xs font-bold px-3 py-2 rounded-lg border-none ring-1 transition-all appearance-none cursor-pointer focus:ring-2 focus:ring-offset-1 focus:ring-offset-slate-900
-                                ${(crmEntry?.status === 'Contacted') ? 'bg-blue-500/20 text-blue-300 ring-blue-500/50 focus:ring-blue-500' :
-                                    (crmEntry?.status === 'Call Later') ? 'bg-amber-500/20 text-amber-300 ring-amber-500/50 focus:ring-amber-500' :
-                                        (crmEntry?.status === 'Good Lead') ? 'bg-emerald-500/20 text-emerald-300 ring-emerald-500/50 focus:ring-emerald-500' :
-                                            (crmEntry?.status === 'High Value') ? 'bg-violet-500/20 text-violet-300 ring-violet-500/50 focus:ring-violet-500' :
-                                                'bg-slate-700 text-slate-400 ring-slate-600 focus:ring-slate-500'
-                                }`}
-                        >
-                            <option value="New">⚡ New Lead</option>
-                            <option value="Contacted">✉️ Contacted</option>
-                            <option value="Call Later">📞 Call Later</option>
-                            <option value="Good Lead">✅ Good Lead</option>
-                            <option value="High Value">💎 High Value</option>
-                        </select>
-                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-current opacity-70">
-                            <ArrowDownWideNarrow className="w-3 h-3" />
-                        </div>
-                    </div>
-
-                    <textarea
-                        value={crmEntry?.notes || ''}
-                        onChange={(e) => updateCRM(biz, 'notes', e.target.value)}
-                        placeholder="Add specific notes..."
-                        className="w-full h-24 bg-slate-900/80 border border-slate-700/80 rounded-lg p-3 text-xs text-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none placeholder-slate-600 transition-colors"
-                    />
-                </div>
-
-                {/* Mobile Button */}
+            {/* CRM Column (Button Only) */}
+            <td className="px-6 py-4 align-top w-40">
                 <button
                     onClick={() => handleOpenCrm(biz)}
-                    className="md:hidden w-full flex items-center justify-center gap-2 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-300 text-xs font-bold py-2.5 rounded-lg transition-colors shadow-sm"
+                    className={`w-full flex items-center justify-center gap-2 border text-xs font-bold py-2.5 rounded-lg transition-all shadow-sm
+                        ${crmEntry?.status && crmEntry.status !== 'New'
+                            ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20'
+                            : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300'}`}
                 >
-                    <Target className="w-3.5 h-3.5" /> Manage Lead
+                    <Target className="w-3.5 h-3.5" />
+                    {crmEntry?.status && crmEntry.status !== 'New' ? crmEntry.status : 'Manage'}
                 </button>
             </td>
 

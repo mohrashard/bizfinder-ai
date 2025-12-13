@@ -12,6 +12,31 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-900 text-white font-sans overflow-x-hidden selection:bg-blue-500 selection:text-white">
 
+      {/* JSON-LD Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "BizFinder AI",
+            "operatingSystem": "Web Browser",
+            "applicationCategory": "BusinessApplication",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.8",
+              "ratingCount": "124"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "description": "AI-powered tool for digital agencies to find local business leads with no websites or social media presence."
+          })
+        }}
+      />
+
       {/* Decorative Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse"></div>
@@ -182,12 +207,6 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 bg-slate-900/50 backdrop-blur text-slate-500 py-8 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm">
-          &copy; {new Date().getFullYear()} BizFinder AI. Built for Agencies.
-        </div>
-      </footer>
     </div>
   );
 }

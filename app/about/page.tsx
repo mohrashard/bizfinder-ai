@@ -144,11 +144,6 @@ export default function AboutPage() {
 
             </main>
 
-            <footer className="border-t border-white/10 bg-slate-900/50 backdrop-blur text-slate-500 py-8 relative z-10 mt-20">
-                <div className="max-w-7xl mx-auto px-4 text-center text-sm">
-                    &copy; {new Date().getFullYear()} BizFinder AI. Built for Agencies.
-                </div>
-            </footer>
         </div>
     );
 }

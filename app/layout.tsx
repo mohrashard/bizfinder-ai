@@ -13,8 +13,60 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BizFinder AI - Smart Business Lead Search",
-  description: "Find business leads in seconds with AI-powered search.",
+  title: {
+    default: "BizFinder AI - #1 AI Business Lead Finder & Scraper",
+    template: "%s | BizFinder AI"
+  },
+  description: "Instantly find high-value business leads from Google Maps using AI. The ultimate tool for Digital Marketing Agencies to find clients without websites or social media.",
+  keywords: ["business lead finder", "google maps scraper", "b2b lead generation", "ai marketing tool", "agency client finder", "digital audit tool", "small business leads", "bizfinder ai"],
+  authors: [{ name: "Mohamed Rashard Rizmi", url: "https://mohamedrashard.vercel.app/" }],
+  creator: "Mohamed Rashard Rizmi",
+  publisher: "BizFinder AI",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    title: "BizFinder AI - Smarter Lead Generation",
+    description: "Stop wasting time manually searching. Find targeted business leads with AI analysis in seconds.",
+    url: "https://bizfinder-theta.vercel.app",
+    siteName: "BizFinder AI",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.png", // We will need to ensure this exists or use a placeholder
+        width: 1200,
+        height: 630,
+        alt: "BizFinder AI Dashboard Preview",
+      }
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BizFinder AI - AI-Powered Business Search",
+    description: "Find your next B2B client in seconds. Filter by 'No Website', 'Low Rating', and more.",
+    images: ["/og-image.png"],
+    creator: "@mohamedrashard",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "your-google-verification-code", // Placeholder for user to fill
+  },
+  alternates: {
+    canonical: "https://bizfinder-theta.vercel.app",
+  },
 };
 
 export default function RootLayout({
@@ -25,9 +77,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-slate-900`}
       >
-        {children}
+        <div className="flex-grow">
+          {children}
+        </div>
+
+        <footer className="border-t border-white/10 bg-slate-900 py-8 relative z-50">
+          <div className="max-w-7xl mx-auto px-4 text-center">
+            <p className="text-slate-500 text-sm">
+              &copy; {new Date().getFullYear()} BizFinder AI. All rights reserved.
+            </p>
+            <p className="text-slate-400 text-sm mt-2 font-medium">
+              Developed by <a href="https://mohamedrashard.vercel.app/" target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors">Mohamed Rashard Rizmi</a>
+            </p>
+          </div>
+        </footer>
       </body>
     </html>
   );
