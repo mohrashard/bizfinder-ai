@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-    const baseUrl = 'https://bizfinder-theta.vercel.app';
+    const baseUrl = 'https://thebizfinderai.vercel.app';
 
     return {
         rules: {

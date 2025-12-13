@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://bizfinder-theta.vercel.app';
+    const baseUrl = 'https://thebizfinderai.vercel.app';
 
     return [
         {

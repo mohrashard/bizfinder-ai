@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://thebizfinderai.vercel.app'),
   title: {
     default: "BizFinder AI - #1 AI Business Lead Finder & Scraper",
     template: "%s | BizFinder AI"
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "BizFinder AI - Smarter Lead Generation",
     description: "Stop wasting time manually searching. Find targeted business leads with AI analysis in seconds.",
-    url: "https://bizfinder-theta.vercel.app",
+    url: "https://thebizfinderai.vercel.app",
     siteName: "BizFinder AI",
     locale: "en_US",
     type: "website",
@@ -65,7 +66,7 @@ export const metadata: Metadata = {
     google: "v27FCR5J3XGYK0EjtOjh47hthxOwSHXi8Lg7yIwkdT8",
   },
   alternates: {
-    canonical: "https://bizfinder-theta.vercel.app",
+    canonical: "https://thebizfinderai.vercel.app",
   },
 };
 
