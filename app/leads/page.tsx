@@ -4,12 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-    Home,
-    BookOpen,
+    ArrowLeft,
     Target,
-    Settings,
-    Menu,
-    X,
+    Download,
     Search,
     MapPin,
     Phone,
@@ -17,11 +14,8 @@ import {
     Star,
     Trash2,
     ArrowDownWideNarrow,
-    CheckCircle2,
     XCircle,
-    Download,
-    ArrowLeft,
-    Info
+    ArrowRight
 } from 'lucide-react';
 
 // --- Types (Mirrored from finder/page.tsx) ---
@@ -61,7 +55,7 @@ interface CRMEntry {
 
 export default function LeadsPage() {
     const [leads, setLeads] = useState<Record<string, CRMEntry>>({});
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     const [loading, setLoading] = useState(true);
 
     // Load data
@@ -144,52 +138,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Navbar */}
-            <nav className="border-b border-white/10 sticky top-0 z-20 backdrop-blur-md bg-slate-900/80">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link href="/" className="relative w-12 h-12 bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-white/10 shadow-xl overflow-hidden cursor-pointer hover:scale-105 transition-transform hover:shadow-blue-500/20 group">
-                            <Image src="/real_logo.png" alt="BizFinder AI Logo" fill className="object-cover" />
-                        </Link>
-                        <Link href="/" className="font-bold text-xl text-white hover:text-blue-200 transition-colors">BizFinder AI</Link>
-                    </div>
 
-                    <div className="hidden md:flex items-center gap-6">
-                        <Link href="/" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
-                            <Home className="w-4 h-4" /> Home
-                        </Link>
-                        <Link href="/leads" className="text-white font-medium text-sm flex items-center gap-2 bg-white/10 px-3 py-2 rounded-lg">
-                            <Target className="w-4 h-4" /> My Leads
-                        </Link>
-                        <Link href="/guide" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
-                            <BookOpen className="w-4 h-4" /> How to Use
-                        </Link>
-                        <Link href="/about" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
-                            <Info className="w-4 h-4" /> About Us
-                        </Link>
-                    </div>
-
-                    <button className="md:hidden text-slate-300 hover:text-white p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-                        {isMobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
-                    </button>
-                </div>
-
-                {isMobileMenuOpen && (
-                    <div className="md:hidden absolute top-full left-0 w-full bg-slate-900 border-b border-white/10 p-4 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
-                        <Link href="/" className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
-                            <Home className="w-5 h-5" /> Home
-                        </Link>
-                        <Link href="/leads" className="flex items-center gap-3 p-3 text-white bg-slate-800 rounded-xl transition-colors font-medium">
-                            <Target className="w-5 h-5" /> My Leads
-                        </Link>
-                        <Link href="/guide" className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
-                            <BookOpen className="w-5 h-5" /> How to Use
-                        </Link>
-                        <Link href="/about" className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium">
-                            <Info className="w-5 h-5" /> About Us
-                        </Link>
-                    </div>
-                )}
-            </nav>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
                 <div className="mb-6">

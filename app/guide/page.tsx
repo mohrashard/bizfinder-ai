@@ -3,12 +3,12 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowLeft, ExternalLink, CheckCircle2, Key, Globe, ArrowRight, Menu, X, Home, BookOpen, Info } from 'lucide-react';
+import { ArrowRight, Key, ExternalLink, CheckCircle2, Globe } from 'lucide-react';
 import Image from 'next/image';
 
 
 export default function GuidePage() {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
 
     return (
         <div className="min-h-screen bg-slate-900 text-slate-200 font-sans overflow-x-hidden selection:bg-blue-500 selection:text-white">
@@ -20,81 +20,7 @@ export default function GuidePage() {
             </div>
 
             {/* Navbar */}
-            {/* Navbar */}
-            <nav className="border-b border-white/10 sticky top-0 z-20 backdrop-blur-md bg-slate-900/80">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
 
-                    {/* Left: Back Link (Desktop: Text, Mobile: Icon Only) */}
-                    <div className="flex-1 flex justify-start items-center gap-4">
-                        <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-medium group">
-                            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                            <span className="hidden sm:inline">Back</span>
-                        </Link>
-                        <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-medium group">
-                            <Home className="w-5 h-5" />
-                            <span className="hidden sm:inline">Home</span>
-                        </Link>
-                        <Link href="/about" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-medium group">
-                            <Info className="w-5 h-5" />
-                            <span className="hidden sm:inline">About</span>
-                        </Link>
-                    </div>
-
-                    {/* Center: Title & Logo */}
-                    <div className="flex items-center gap-3">
-                        <div className="relative w-10 h-10 sm:w-12 sm:h-12 bg-slate-800/80 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl overflow-hidden group">
-                            <Image
-                                src="/real_logo.png"
-                                alt="BizFinder AI Logo"
-                                fill
-                                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                        </div>
-                        <span className="font-bold text-white tracking-wide text-sm sm:text-base">Setup Guide</span>
-                    </div>
-
-                    {/* Right: Spacer (Desktop) / Menu (Mobile) */}
-                    <div className="flex-1 flex justify-end">
-                        {/* Desktop: Empty to balance center */}
-                        <div className="hidden sm:block w-20"></div>
-
-                        {/* Mobile: Hamburger */}
-                        <button
-                            className="sm:hidden text-slate-300 hover:text-white p-2"
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        >
-                            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Mobile Menu */}
-                {isMobileMenuOpen && (
-                    <div className="sm:hidden absolute top-full left-0 w-full bg-slate-900 border-b border-white/10 p-4 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
-                        <Link
-                            href="/"
-                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <Home className="w-5 h-5" /> Home
-                        </Link>
-                        <Link
-                            href="/about"
-                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <Info className="w-5 h-5" /> About
-                        </Link>
-                        <Link
-                            href="/finder"
-                            className="block p-3 bg-blue-600 text-white text-center rounded-xl font-bold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            Launch App
-                        </Link>
-                    </div>
-                )}
-            </nav>
 
             <main className="max-w-4xl mx-auto px-4 sm:px-6 py-10 relative z-10">
 

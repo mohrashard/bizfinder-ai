@@ -18,15 +18,10 @@ import {
     Filter,
     ArrowDownWideNarrow,
     Plus,
-    Menu,
     X,
-    Home,
-    BookOpen,
     Sparkles,
-    CheckCircle,
-    XOctagon,
-    Target,
-    Info
+    Target
+
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -539,7 +534,7 @@ export default function BusinessFinderApp() {
 
     // UI State
     const [showSettings, setShowSettings] = useState(false);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
     const [error, setError] = useState<string | null>(null);
     const [isUsingFallback, setIsUsingFallback] = useState(false);
 
@@ -655,6 +650,17 @@ export default function BusinessFinderApp() {
         localStorage.setItem('bf_gemini_key', newKeys.gemini);
         localStorage.setItem('bf_serp_key', newKeys.serpApi);
         setShowSettings(false);
+    };
+
+    // --- Toast State & Logic ---
+    const [toast, setToast] = useState<{ message: string, visible: boolean } | null>(null);
+
+    const showToast = (message: string) => {
+        setToast({ message, visible: true });
+        // Hide after 3 seconds
+        setTimeout(() => {
+            setToast(prev => prev && prev.message === message ? { ...prev, visible: false } : prev);
+        }, 3000);
     };
 
     // --- Logic: 1. Interpret Query with Gemini ---
@@ -1037,111 +1043,31 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
             </div>
 
             {/* Navbar */}
-            <nav className="border-b border-white/10 sticky top-0 z-20 backdrop-blur-md bg-slate-900/80">
-                {/* Selection Tooltip */}
-                {selection && (
-                    <div
-                        className="absolute z-50 bg-slate-800 border border-slate-700 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl transform -translate-x-1/2 -translate-y-full flex items-center gap-2 cursor-pointer hover:bg-slate-700 transition-colors animate-in fade-in zoom-in-95 duration-200"
-                        style={{ top: selection.y, left: selection.x }}
-                        onMouseDown={(e) => {
-                            e.preventDefault();
-                            window.open(`https://www.google.com/search?q=${encodeURIComponent(selection.text)}`, '_blank');
-                        }}
-                    >
-                        <Search className="w-3 h-3" /> Search "{selection.text.slice(0, 15)}{selection.text.length > 15 ? '...' : ''}"
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-slate-800 border-r border-b border-slate-700"></div>
-                    </div>
-                )}
-
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link href="/" className="relative w-12 h-12 sm:w-14 sm:h-14 bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-white/10 shadow-xl overflow-hidden cursor-pointer hover:scale-105 transition-transform hover:shadow-blue-500/20 group">
-                            <Image
-                                src="/real_logo.png"
-                                alt="BizFinder AI Logo"
-                                fill
-                                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                        </Link>
-                        <Link href="/" className="font-bold text-xl sm:text-2xl tracking-tight text-white cursor-pointer hover:text-blue-200 transition-colors">BizFinder AI</Link>
-                    </div>
-
-                    {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center gap-6">
-                        <Link href="/" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
-                            <Home className="w-4 h-4" /> Home
-                        </Link>
-                        <Link href="/leads" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
-                            <Target className="w-4 h-4" /> My Leads
-                        </Link>
-                        <Link href="/guide" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
-                            <BookOpen className="w-4 h-4" /> How to Use
-                        </Link>
-                        <Link href="/about" className="text-slate-400 hover:text-white transition-colors font-medium text-sm flex items-center gap-2">
-                            <Info className="w-4 h-4" /> About
-                        </Link>
-                        <button
-                            onClick={() => setShowSettings(true)}
-                            className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium hover:bg-white/10 px-3 py-2 rounded-lg"
-                        >
-                            <Settings className="w-4 h-4" />
-                            {(!apiKeys.gemini || !apiKeys.serpApi) ? "Configure APIs (Demo Mode)" : "Settings"}
-                        </button>
-                    </div>
-
-                    {/* Mobile Menu Button */}
-                    <button
-                        className="md:hidden text-slate-300 hover:text-white p-2"
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    >
-                        {isMobileMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
-                    </button>
+            {/* Selection Tooltip */}
+            {selection && (
+                <div
+                    className="absolute z-50 bg-slate-800 border border-slate-700 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl transform -translate-x-1/2 -translate-y-full flex items-center gap-2 cursor-pointer hover:bg-slate-700 transition-colors animate-in fade-in zoom-in-95 duration-200"
+                    style={{ top: selection.y, left: selection.x }}
+                    onMouseDown={(e) => {
+                        e.preventDefault();
+                        window.open(`https://www.google.com/search?q=${encodeURIComponent(selection.text)}`, '_blank');
+                    }}
+                >
+                    <Search className="w-3 h-3" /> Search "{selection.text.slice(0, 15)}{selection.text.length > 15 ? '...' : ''}"
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-slate-800 border-r border-b border-slate-700"></div>
                 </div>
+            )}
 
-                {/* Mobile Navigation Dropdown */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden absolute top-full left-0 w-full bg-slate-900 border-b border-white/10 p-4 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
-                        <Link
-                            href="/"
-                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <Home className="w-5 h-5" /> Home
-                        </Link>
-                        <Link
-                            href="/leads"
-                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <Target className="w-5 h-5" /> My Leads (CRM)
-                        </Link>
-                        <Link
-                            href="/guide"
-                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <BookOpen className="w-5 h-5" /> How to Use (AI Audit)
-                        </Link>
-                        <Link
-                            href="/about"
-                            className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                            <Info className="w-5 h-5" /> About Us
-                        </Link>
-                        <button
-                            onClick={() => {
-                                setShowSettings(true);
-                                setIsMobileMenuOpen(false);
-                            }}
-                            className="w-full text-left p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium flex items-center gap-2"
-                        >
-                            <Settings className="w-5 h-5" />
-                            {(!apiKeys.gemini || !apiKeys.serpApi) ? "Configure APIs (Demo Mode)" : "Settings"}
-                        </button>
-                    </div>
-                )}
-            </nav>
+            {/* Settings Toggle Button (floating or positioned) */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-end">
+                <button
+                    onClick={() => setShowSettings(true)}
+                    className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium hover:bg-white/10 px-3 py-2 rounded-lg ml-auto"
+                >
+                    <Settings className="w-4 h-4" />
+                    {(!apiKeys.gemini || !apiKeys.serpApi) ? "Configure APIs (Demo Mode)" : "Settings"}
+                </button>
+            </div>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
 
@@ -1297,7 +1223,7 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
 
                         {/* Table */}
                         <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700 overflow-hidden mb-8">
-                            <div className="overflow-x-auto">
+                            <div className="overflow-x-auto custom-scrollbar">
                                 <table className="w-full text-left text-sm text-slate-400">
                                     <thead className="bg-slate-900/50 border-b border-slate-700 text-xs uppercase font-semibold text-slate-500">
                                         <tr>
@@ -1345,8 +1271,8 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
 
             {/* Prompts Modal */}
             {selectedBusiness && (
-                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200 flex flex-col">
+                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar animate-modal-enter flex flex-col">
 
                         {/* Header */}
                         <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
@@ -1383,7 +1309,7 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
                                             <button
                                                 onClick={() => {
                                                     navigator.clipboard.writeText(generatedPrompts.websitePrompt);
-                                                    alert("Website Prompt copied to clipboard!");
+                                                    showToast("Website Prompt copied to clipboard!");
                                                 }}
                                                 className="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
                                             >
@@ -1394,7 +1320,7 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
                                             <textarea
                                                 readOnly
                                                 value={generatedPrompts.websitePrompt}
-                                                className="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-300 text-sm font-mono leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                                className="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-300 text-sm font-mono leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none resize-none custom-scrollbar"
                                             />
                                         </div>
                                         <p className="text-xs text-slate-500">
@@ -1411,7 +1337,7 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
                                             <button
                                                 onClick={() => {
                                                     navigator.clipboard.writeText(generatedPrompts.marketingPrompt);
-                                                    alert("Marketing Prompt copied to clipboard!");
+                                                    showToast("Marketing Prompt copied to clipboard!");
                                                 }}
                                                 className="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
                                             >
@@ -1422,7 +1348,7 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
                                             <textarea
                                                 readOnly
                                                 value={generatedPrompts.marketingPrompt}
-                                                className="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-300 text-sm font-mono leading-relaxed focus:ring-2 focus:ring-pink-500 outline-none resize-none"
+                                                className="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-300 text-sm font-mono leading-relaxed focus:ring-2 focus:ring-pink-500 outline-none resize-none custom-scrollbar"
                                             />
                                         </div>
                                         <p className="text-xs text-slate-500">
@@ -1449,8 +1375,8 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
 
             {/* CRM Modal (Mobile) */}
             {editingCrmBiz && (
-                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-modal-enter">
                         <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
                             <h3 className="font-bold text-lg text-white">Manage Lead</h3>
                             <button onClick={() => setEditingCrmBiz(null)} className="text-slate-400 hover:text-white transition-colors">
@@ -1513,8 +1439,8 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
 
             {/* Settings Modal */}
             {showSettings && (
-                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-modal-enter">
                         <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900">
                             <h3 className="font-bold text-lg text-white">API Configuration</h3>
                             <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-white transition-colors">
@@ -1551,24 +1477,29 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
                                 <p className="text-xs text-slate-500 mt-2">Used to fetch real-time business data from Google Maps.</p>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="px-6 py-4 bg-slate-800/50 flex justify-end gap-3 border-t border-slate-800">
-                        <button
-                            onClick={() => setShowSettings(false)}
-                            className="px-4 py-2 text-slate-400 font-medium hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={() => saveKeys(apiKeys)}
-                            className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all hover:scale-105"
-                        >
-                            Save Configuration
-                        </button>
+                        <div className="px-6 py-4 bg-slate-800/50 flex justify-end gap-3 border-t border-slate-800">
+                            <button
+                                onClick={() => setShowSettings(false)}
+                                className="px-4 py-2 text-slate-400 font-medium hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => saveKeys(apiKeys)}
+                                className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all hover:scale-105"
+                            >
+                                Save Configuration
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
+            {/* Toast Notification */}
+            <div className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl border border-slate-600 flex items-center gap-3 z-[100] transition-all duration-300 ease-out ${toast?.visible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0 pointer-events-none'}`}>
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                <span className="font-medium text-sm">{toast?.message}</span>
+            </div>
         </div>
     );
 }

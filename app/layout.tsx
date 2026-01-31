@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   },
   description: "Instantly find high-value business leads from Google Maps using AI. The ultimate tool for Digital Marketing Agencies to find clients without websites or social media.",
   keywords: ["business lead finder", "google maps scraper", "b2b lead generation", "ai marketing tool", "agency client finder", "digital audit tool", "small business leads", "bizfinder ai"],
-  authors: [{ name: "Mohamed Rashard Rizmi", url: "https://mohamedrashard.vercel.app/" }],
-  creator: "Mohamed Rashard Rizmi",
+  authors: [{ name: "Mr² Labs", url: "https://mohamedrashard.vercel.app/" }],
+  creator: "Mr² Labs",
   publisher: "BizFinder AI",
   formatDetection: {
     email: false,
@@ -70,6 +70,8 @@ export const metadata: Metadata = {
   },
 };
 
+import Navbar from "@/components/Navbar";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -78,8 +80,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-slate-900`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-slate-900 overflow-x-hidden`}
       >
+        <Navbar />
         <div className="flex-grow">
           {children}
         </div>
@@ -90,7 +93,7 @@ export default function RootLayout({
               &copy; {new Date().getFullYear()} BizFinder AI. All rights reserved.
             </p>
             <p className="text-slate-400 text-sm mt-2 font-medium">
-              Developed by <a href="https://mohamedrashard.vercel.app/" target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors">Mohamed Rashard Rizmi</a>
+              Developed by <a href="https://mohamedrashard.vercel.app/" target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 hover:underline transition-colors">Mr² Labs</a>
             </p>
           </div>
         </footer>
