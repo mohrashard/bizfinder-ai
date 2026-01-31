@@ -1,112 +1,156 @@
-# 🚀 BizFinder AI
+<div align="center">
 
-![BizFinder AI Logo](/public/logooo.png)
+  <img src="public/real_logo.png" alt="BizFinder AI Logo" width="120" height="120" />
+  
+  # 🚀 BizFinder AI
+  
+  **The Intelligent Google Maps Scraper & B2B Lead Generator**
+  
+  [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+  [![Gemini AI](https://img.shields.io/badge/Gemini-2.0-8E75B2?style=for-the-badge&logo=google-bard&logoColor=white)](https://deepmind.google/technologies/gemini/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-> **Supercharge Your Lead Generation with Artificial Intelligence.**
+  <p align="center">
+    <b>Supercharge your agency's outreach. Find high-ticket clients in seconds using AI.</b>
+  </p>
 
-**BizFinder AI** is a cutting-edge lead generation tool designed for digital marketing agencies and sales professionals. It leverages the power of **Google Gemini 2.0** and **SerpAPI** to find high-value business prospects that traditional search engines miss.
+  [View Demo](https://thebizfinderai.vercel.app) • [Report Bug](https://github.com/mohrashard/bizfinder-ai/issues) • [Request Feature](https://github.com/mohrashard/bizfinder-ai/issues)
+
+</div>
 
 ---
 
 ## 🧐 The Problem
 
- finding quality leads is manual, tedious, and inefficient. 
-- **Google Maps** is great for finding locations but lacks "negative filters." You can't search for *"businesses that DO NOT have a website"* or *"restaurants with LOW ratings."*
-- **Digital Agencies** need these exact clients—businesses that are underserved and need help with web design, SEO, or reputation management.
-- Manual searching wastes hours of valuable time.
+**Lead generation is broken.**
+- ❌ **Manual Searching**: Scrolling through Google Maps for hours is tedious.
+- ❌ **No "Negative" Filters**: You can't ask Google for *"businesses WITHOUT a website"* or *"restaurants with BAD ratings."*
+- ❌ **Generic Data**: Most tools just give you a list. They don't analyze the *opportunity*.
 
-## 💡 The Solution
+## 💡 The Solution: BizFinder AI
 
-**BizFinder AI** automates this entire process. 
+**BizFinder AI** transforms how you find clients. It combines **Google Maps data** with **Gemini AI** to act as your autonomous sales researcher.
 
-1. **Natural Language Search**: Just type what you want in plain English.
-   - *"Find dentists in Miami with no website"*
-   - *"Mechanics in Dubai with bad ratings"*
-2. **AI Interpretation**: We use **Google Gemini AI** to understand your intent and extract strict criteria (e.g., `filter: { noWebsite: true }`).
-3. **Real-Time Data**: We fetch live data from Google Maps via **SerpAPI**, ensuring you get the most up-to-date contact info, hours, and status.
-4. **Smart Filtering**: The app automatically filters the raw data to match your specific needs, revealing hidden opportunities.
-5. **Built-in CRM**: Save interesting leads directly to your personal "My Leads" dashboard to track and export later.
+> *"Find me dentists in Miami with no website"* -> **Done.**
+>
+> *"Show me mechanics in Dubai with low ratings"* -> **Done.**
+
+---
+
+## ✨ Key Features
+
+### 🔍 **Smart AI Search**
+Stop clicking filters. Just type what you want. We use **Google Gemini 2.0** to understand complex queries like:
+- *"Plumbers in Toronto with no website and low reviews"*
+- *"Gyms in New York open now"*
+
+### 📊 **Opportunity Scoring**
+Don't just get leads; get **insights**. Every business is scored (0-100) based on potential:
+- **+30 pts**: Missing Website (Prime candidate for Web Design)
+- **+20 pts**: Missing Social Meida (Prime for Social Media Marketing)
+- **+15 pts**: Low Ratings (Prime for Reputation Management)
+
+### 🤖 **AI Prompt Generation**
+Generate custom, highly-specific pitches in one click.
+- **Website Pitch**: Analyses the business data to write a compelling email about why they need a site.
+- **Marketing Pitch**: Generates a tailored social media strategy based on their specific niche and location.
+
+### 🗂️ **Built-in CRM**
+- **Save Leads**: Build your pipeline directly in the app.
+- **Track Status**: Mark leads as "New", "Contacted", "Call Later", etc.
+- **Export Data**: One-click CSV export to move data to your favorite tools (HubSpot, instantly.ai, etc.).
+
+### 🎨 **Premium Experience**
+- **Glassmorphism UI**: Beautiful, modern dashboard.
+- **Dark Mode**: Easy on the eyes for late-night grinding.
+- **Mobile Optimized**: Find leads on the go.
 
 ---
 
 ## 🛠️ Tech Stack
 
-Built with the latest modern web technologies for performance and experience.
+This project is built with the "T3 Stack" philosophy + AI superpowers:
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Glassmorphism & Dark Mode)
-- **AI Engine**: [Google Gemini 2.0 Flash](https://aistudio.google.com/)
-- **Data Source**: [SerpAPI](https://serpapi.com/) (Google Maps Engine)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Language**: TypeScript
-
----
-
-## ⚙️ How It Works (Architecture)
-
-1. **User Input**: The user enters a query like *"Italian restaurants in Chicago without social media."*
-2. **Gemini Processing**: The app sends this text to Google Gemini. The AI parses it into a structured JSON object:
-   ```json
-   {
-     "category": "Italian restaurants",
-     "location": "Chicago",
-     "filters": { "noSocials": true }
-   }
-   ```
-3. **Data Retrieval**: utilizing SerpAPI, the app searches Google Maps for the category and location.
-4. **Client-Side Filtering**: The application receives the raw list and applies the strict "negative filters" (checking for missing website fields, parsing social media links, analyzing ratings) in real-time.
-5. **Lead Management**: Users can "Save" promising leads to their local storage, view them in the "My Leads" tab, adding notes or status updates (e.g. "Contacted").
-6. **Export**: Both search results and saved leads can be exported to CSV.
+- **Framework:** [Next.js 15](https://nextjs.org/) (App Router, Server Actions)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) + [Lucide React](https://lucide.dev)
+- **Intelligence:** [Google Gemini 2.0 Flash](https://aistudio.google.com/) (Natural Language Understanding & Generation)
+- **Data Engine:** [SerpAPI](https://serpapi.com/) (Google Maps Real-time Data)
+- **State:** React Hooks + LocalStorage (Persisted CRM)
 
 ---
 
 ## 🚀 Getting Started
 
+Follow these steps to set up BizFinder AI locally.
+
 ### Prerequisites
-- Node.js 18+ installed.
-- API Keys for **Gemini** (free tier available) and **SerpAPI**.
+
+- **Node.js 18+**
+- **npm** or **yarn**
+- API Keys for **Google Gemini** (Free) and **SerpAPI** (Free tier available).
 
 ### Installation
 
-1. **Clone the repository:**
+1. **Clone the repo**
    ```bash
    git clone https://github.com/mohrashard/bizfinder-ai.git
    cd bizfinder-ai
    ```
 
-2. **Install dependencies:**
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. **Run the development server:**
+3. **Run the development server**
    ```bash
    npm run dev
    ```
 
-4. **Open in Browser:**
-   Navigate to `http://localhost:3000`.
+4. **Launch**
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Configuration
-You don't need environment variables to start! 
-1. Launch the app.
-2. Click on **"Configure APIs"** in the top right corner.
-3. Paste your **Gemini API Key** and **SerpAPI Key**.
-4. Keys are saved securely in your browser's LocalStorage for convenience.
+### 🔑 Configuration
+
+No `.env` file is strictly required to start! The app has a built-in **Settings Panel**.
+1. Click the **Settings (⚙️)** icon in the app.
+2. Enter your **Gemini API Key** and **SerpAPI Key**.
+3. Keys are stored securely in your browser's LocalStorage.
 
 ---
 
-## 📖 How To Use
+## 🎯 Use Cases
 
-1. **Go to the "Finder" page**.
-2. **Enter a query**. Be specific about what you are looking for.
-   - *Example 1*: "Gyms in London with less than 4 stars" (Great for Reputation Management)
-   - *Example 2*: "Plumbers in Toronto no website" (Great for Web Design agencies)
-   - *Example 3*: "Coffee shops in Austin open now"
-3. **Review Results**: The app will show you exactly which businesses match your criteria.
-4. **Save Leads**: Click the "Save" button on any result to add it to your personal list.
-5. **Manage Leads**: Go to the **"My Leads"** page to view your saved prospects, add notes, or remove them.
-6. **Export**: Click "Export CSV" to download your leads and import them into your CRM or cold email tool.
+| Agency Type | Search Query Example | Goal |
+| :--- | :--- | :--- |
+| **Web Design** | *"Landscapers in Austin with no website"* | Sell custom websites. |
+| **SEO Agencies** | *"Dentists in London with rating < 3.5"* | Sell Reputation Management & SEO. |
+| **Social Media** | *"Coffee shops in Seattle no instagram"* | Sell Content Creation & SMM. |
+| **Lead Gen** | *"Real Estate agents in Miami"* | Build B2B lists. |
+
+---
+
+## 📸 Screenshots
+
+| Landing Page | Search Interface |
+|:---:|:---:|
+| <img src="public/demo-landing.png" alt="Landing Page" width="400"/> | <img src="public/demo-search.png" alt="Search Interface" width="400"/> |
+
+*(Note: Add your own screenshots to the public folder)*
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
@@ -114,8 +158,12 @@ You don't need environment variables to start!
 
 **Mohamed Rashard Rizmi**
 
-Designed and built with a focus on modern aesthetics, user experience, and solving real-world business problems.
+- [GitHub](https://github.com/mohrashard)
+- [Twitter](https://twitter.com/mohrashard)
+- [LinkedIn](https://linkedin.com/in/mohrashard)
 
 ---
 
-*© 2025 BizFinder AI.*
+<p align="center">
+  Built with ❤️ for hustlers and builders.
+</p>
