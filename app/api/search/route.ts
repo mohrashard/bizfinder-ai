@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 
-// Helper to extract email with timeout
-async function extractEmail(url: string): Promise<string | undefined> {
+// Helper to extract email and socials with timeout
+async function extractContactInfo(url: string): Promise<{ email?: string, socials?: any }> {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout per site
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout per site
 
     const response = await fetch(url, {
       signal: controller.signal,
@@ -15,33 +15,60 @@ async function extractEmail(url: string): Promise<string | undefined> {
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) return undefined;
+    if (!response.ok) return {};
     const text = await response.text();
+    const result: { email?: string, socials: any } = { socials: {} };
 
+    // --- Email Extraction ---
     // 1. Look for mailto links (Highest confidence)
     const mailtoMatch = text.match(/href=["']mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})["']/i);
-    if (mailtoMatch && mailtoMatch[1]) return mailtoMatch[1];
-
-    // 2. Look for raw emails in text
-    // Filter to avoid false positives (like image filenames being mistaken for emails)
-    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
-    const matches = text.match(emailRegex);
-
-    if (matches) {
-      // detailed filter for obviously bad matches
-      const validEmails = matches.filter(e => {
-        const lower = e.toLowerCase();
-        // Exclude common file extensions that might look like emails
-        if (lower.match(/\.(png|jpg|jpeg|gif|svg|webp|css|js|woff|woff2)$/)) return false;
-        // Exclude specific junk
-        if (lower.includes('sentry') || lower.includes('example') || lower.includes('domain')) return false;
-        return true;
-      });
-      if (validEmails.length > 0) return validEmails[0];
+    if (mailtoMatch && mailtoMatch[1]) {
+      result.email = mailtoMatch[1];
+    } else {
+      // 2. Look for raw emails in text
+      const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+      const matches = text.match(emailRegex);
+      if (matches) {
+        const validEmails = matches.filter(e => {
+          const lower = e.toLowerCase();
+          // Exclude common file extensions that might look like emails
+          if (lower.match(/\.(png|jpg|jpeg|gif|svg|webp|css|js|woff|woff2)$/)) return false;
+          // Exclude specific junk
+          if (lower.includes('sentry') || lower.includes('example') || lower.includes('domain')) return false;
+          return true;
+        });
+        if (validEmails.length > 0) result.email = validEmails[0];
+      }
     }
-    return undefined;
+
+    // --- Social Media Extraction ---
+    // Helper to extract specific social links
+    const extractLink = (patterns: string[]) => {
+      for (const domain of patterns) {
+        // Regex to capture full URL starting with http/https containing the domain
+        const regex = new RegExp(`href=["']((?:https?:\\/\\/)?(?:www\\.)?${domain}[^"']*)["']`, 'i');
+        const match = text.match(regex);
+        if (match && match[1]) return match[1];
+      }
+      return undefined;
+    };
+
+    const fb = extractLink(['facebook\\.com']);
+    if (fb) result.socials.facebook = fb;
+
+    const insta = extractLink(['instagram\\.com']);
+    if (insta) result.socials.instagram = insta;
+
+    const tw = extractLink(['twitter\\.com', 'x\\.com']);
+    if (tw) result.socials.twitter = tw;
+
+    const li = extractLink(['linkedin\\.com']);
+    if (li) result.socials.linkedin = li;
+
+    return result;
+
   } catch (e) {
-    return undefined; // Fail silently
+    return { socials: {} }; // Fail silently
   }
 }
 
@@ -73,12 +100,17 @@ export async function GET(request: Request) {
 
     // 4. Enrich results with emails (Parallel Fetching)
     if (data.local_results && Array.isArray(data.local_results)) {
-      // Select only items that have a website but NO email
+      // Select items that have a website (to check for missing email OR socials)
       const tasks = data.local_results.map(async (item: any) => {
-        if (!item.email && item.website) {
-          const fetchedEmail = await extractEmail(item.website);
-          if (fetchedEmail) {
-            item.email = fetchedEmail; // Inject found email
+        if (item.website) {
+          const info = await extractContactInfo(item.website);
+
+          if (info.email && !item.email) {
+            item.email = info.email; // Inject found email
+          }
+
+          if (info.socials && Object.keys(info.socials).length > 0) {
+            item.extracted_socials = info.socials; // Inject found socials
           }
         }
         return item; // Return enriched item

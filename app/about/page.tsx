@@ -112,8 +112,8 @@ export default function AboutPage() {
                                     <p className="text-slate-400 text-sm">Target specifically businesses with "No Website" or "Low Ratings" in one click.</p>
                                 </div>
                                 <div className="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
-                                    <h3 className="font-bold text-white mb-2 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> AI Audit</h3>
-                                    <p className="text-slate-400 text-sm">Generate instant digital presence audits to send to clients as a pitch.</p>
+                                    <h3 className="font-bold text-white mb-2 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> Instant Prompts</h3>
+                                    <p className="text-slate-400 text-sm">Generate website and marketing prompts to build projects instantly (with v0, bolt, etc).</p>
                                 </div>
                                 <div className="bg-slate-800/50 p-5 rounded-xl border border-slate-700">
                                     <h3 className="font-bold text-white mb-2 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" /> Built-in CRM</h3>

@@ -76,11 +76,9 @@ interface ApiKeys {
     serpApi: string;
 }
 
-interface AuditReport {
-    summary: string;
-    strengths: string[];
-    weaknesses: string[];
-    actionable_plan: string[];
+interface PromptData {
+    websitePrompt: string;
+    marketingPrompt: string;
 }
 
 
@@ -150,7 +148,7 @@ const calculateOpportunity = (biz: Partial<Business>): { score: number, factors:
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const processSerpResult = (item: any): Business => {
-    const socials: Business['socials'] = {};
+    const socials: NonNullable<Business['socials']> = item.extracted_socials ? { ...item.extracted_socials } : {};
     let website = item.website;
     const links = Array.isArray(item.links) ? item.links : [];
 
@@ -315,14 +313,14 @@ const BusinessRow = React.memo(({
     crmEntry,
     idx,
     updateCRM,
-    handleGenerateAudit,
+    handleGeneratePrompts,
     handleOpenCrm
 }: {
     biz: Business;
     crmEntry: CRMEntry | undefined;
     idx: number;
     updateCRM: (biz: Business, field: any, value: any) => void;
-    handleGenerateAudit: (biz: Business) => void;
+    handleGeneratePrompts: (biz: Business) => void;
     handleOpenCrm: (biz: Business) => void;
 }) => {
     return (
@@ -507,20 +505,25 @@ const BusinessRow = React.memo(({
                         <span className="text-xs text-slate-500">({biz.reviews || 0})</span>
                     </div>
 
-                    {/* Audit Button */}
+                    {/* Prompt Button */}
                     <button
-                        onClick={() => handleGenerateAudit(biz)}
+                        onClick={() => handleGeneratePrompts(biz)}
                         className="mt-3 flex items-center gap-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium shadow-lg shadow-violet-500/20 transform hover:scale-105 transition-all"
                     >
-                        <Sparkles className="w-3 h-3" /> AI Audit
+                        <Sparkles className="w-3 h-3" /> Get Prompt
                     </button>
                 </div>
             </td>
         </tr>
     );
 }, (prev, next) => {
-    return prev.biz === next.biz && prev.crmEntry === next.crmEntry && prev.updateCRM === next.updateCRM && prev.handleOpenCrm === next.handleOpenCrm;
+    return prev.biz === next.biz &&
+        prev.crmEntry === next.crmEntry &&
+        prev.updateCRM === next.updateCRM &&
+        prev.handleOpenCrm === next.handleOpenCrm &&
+        prev.handleGeneratePrompts === next.handleGeneratePrompts;
 });
+BusinessRow.displayName = 'BusinessRow';
 
 // --- Main Component ---
 
@@ -551,11 +554,10 @@ export default function BusinessFinderApp() {
     });
     const [sortBy, setSortBy] = useState<'relevance' | 'rating' | 'reviews' | 'opportunity'>('opportunity');
 
-    // Audit State
+    // Prompt Generation State
     const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
-    const [auditReport, setAuditReport] = useState<AuditReport | null>(null);
-    const [isAuditing, setIsAuditing] = useState(false);
-    const [auditError, setAuditError] = useState<string | null>(null);
+    const [generatedPrompts, setGeneratedPrompts] = useState<PromptData | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     // CRM Mobile Modal State
     const [editingCrmBiz, setEditingCrmBiz] = useState<Business | null>(null);
@@ -570,11 +572,13 @@ export default function BusinessFinderApp() {
     useEffect(() => {
         const savedGemini = localStorage.getItem('bf_gemini_key');
         const savedSerp = localStorage.getItem('bf_serp_key');
+
+        // If localStorage has keys, or if we need to hydrate the state
         if (savedGemini || savedSerp) {
-            setApiKeys({
-                gemini: savedGemini || '',
-                serpApi: savedSerp || ''
-            });
+            setApiKeys(prev => ({
+                gemini: savedGemini || prev.gemini,
+                serpApi: savedSerp || prev.serpApi
+            }));
         }
     }, []);
 
@@ -873,63 +877,78 @@ export default function BusinessFinderApp() {
         }
     };
 
-    // --- Logic: 7. Generative AI Audit ---
+    // --- Logic: 7. Generate Prompts ---
 
-    const handleGenerateAudit = React.useCallback(async (biz: Business) => {
-        if (!apiKeys.gemini) {
-            alert("Please configure your Gemini API Key in Settings to use this feature.");
-            return;
-        }
-
+    const handleGeneratePrompts = React.useCallback((biz: Business) => {
+        setIsGenerating(true);
         setSelectedBusiness(biz);
-        setAuditReport(null);
-        setIsAuditing(true);
-        setAuditError(null);
 
-        try {
-            const prompt = `
-        You are a Digital Marketing Expert. Analyze this business lead and provide a JSON audit report.
-        
-        Business Data:
-        ${JSON.stringify(biz, null, 2)}
-        
-        Task:
-        1. Analyze their online presence (Website, Socials, Ratings, Reviews).
-        2. Identify key strengths and critical weaknesses.
-        3. Create a 3-step actionable plan to improve their digital footprint.
-        
-        Return ONLY valid JSON. Structure:
-        {
-            "summary": "A 2-sentence executive summary of their current status.",
-            "strengths": ["List 3 key strengths"],
-            "weaknesses": ["List 3 key weaknesses/missing assets"],
-            "actionable_plan": ["Step 1 detailed action", "Step 2 detailed action", "Step 3 detailed action"]
-        }
-      `;
+        // 1. Detailed Website Prompt
+        const websitePrompt = `Act as a Senior Frontend Architect and UI/UX Expert. Your goal is to architect and build a high-conversion, premium website for a client.
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKeys.gemini}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
+Client Profile:
+- **Business Name:** ${biz.title}
+- **Industry:** ${biz.type || "General Service"}
+- **Location:** ${biz.address}
+- **Phone:** ${biz.phone || "Placeholder"}
+- **Current Status:** ${biz.website ? "Has outdated site" : "No Professional Website"}
+- **Key Offering:** Service-based business in ${biz.address.split(',').pop()?.trim() || "local area"}.
 
-            const data = await response.json();
+Technical Specifications (Strict adherence required):
+- **Framework:** Next.js 14+ (App Router).
+- **Styling:** Tailwind CSS (use strictly semantic class names where possible).
+- **UI Library:** Shadcn/UI (Radix Primitives) for accessible, premium components.
+- **Icons:** Lucide React.
+- **Animation:** Framer Motion (subtle, scroll-triggered fade-ins for sections).
+- **Fonts:** 'Inter' for body, 'Playfair Display' or 'Montserrat' for headings depending on brand vibe.
 
-            if (!data.candidates || !data.candidates[0].content) {
-                throw new Error("AI failed to generate report.");
-            }
+Design Requirements:
+1.  **Visual Identity:** Create a "Trust & Authority" aesthetic. Use a professional color palette appropriate for the ${biz.type} industry (e.g., Deep Navy & Gold for Law, Sage Green & Earth Tones for Landscaping, Clean White & Medical Blue for Clinics).
+2.  **Hero Section:** Must include a high-impact headline, a subheadline addressing a primary customer pain point, and a "Sticky" Call-To-Action (CTA) button (e.g., "Get a Free Quote" or "Book Now").
+3.  **Trust Signals:** prominent placement of "5-Star Rated" badges, testimonial carousel, and recognized industry certifications using placeholder logos.
+4.  **Service Grid:** specific cards detailing their likely core services (infer these based on the industry: "${biz.type}").
+5.  **Lead Capture:** An embedded contact form with validation (Zod + React Hook Form).
+6.  **SEO Optimization:** Semantic HTML tags (<header>, <main>, <article>, <footer>) and proper H1-H6 hierarchy.
 
-            const textBlock = data.candidates[0].content.parts[0].text;
-            const jsonString = textBlock.replace(/^```json\s*/, '').replace(/\s*```$/, '').trim();
-            setAuditReport(JSON.parse(jsonString));
+Output Format:
+Provide the **complete single-file React component** code (e.g., 'LandingPage.tsx') that is ready to be dropped into a v0.dev, bolt.new, or similar AI coding environment. Ensure all imports are handled or mocked if external.`;
 
-        } catch (err) {
-            console.error("Audit Error:", err);
-            setAuditError("Failed to generate audit. Please try again.");
-        } finally {
-            setIsAuditing(false);
-        }
-    }, [apiKeys.gemini]);
+        // 2. Social Media Marketing (SMMA) Prompt
+        const marketingPrompt = `Act as a Chief Marketing Officer (CMO) specializing in Local SEO and Social Media Growth. Develop a comprehensive, aggressive 30-day "Market Domination" strategy for this business.
+
+Target Business:
+- **Name:** ${biz.title}
+- **Niche:** ${biz.type}
+- **Location:** ${biz.address}
+
+Your Output must be a professional Strategy Document formatted in Markdown.
+
+## Phase 1: The Diagnostics
+1.  **Ideal Customer Avatar (ICA):** Define exactly who buys from this business (Age, Income, Pain Points, Desires).
+2.  **Competitor Gap Analysis:** Identify 3 things competitors in ${biz.address.split(',').pop()?.trim() || "the area"} are likely doing wrong that we can capitalize on.
+
+## Phase 2: Brand & content Strategy
+**Visual Direction:**
+- Suggest a Color Palette & Typography pairing that screams "Premium".
+- Propose 3 Midjourney/DALL-E prompts to generate high-end social media assets.
+
+**The "Viral" Content Pillars (3 Distinct Angles):**
+1.  *Educational/Authority:* (e.g., "5 Signs You Need a ${biz.type} Immediately").
+2.  *Behind-the-Scenes/Trust:* (e.g., "A Day in the Life," "How We Ensure Quality").
+3.  *Social Proof/Results:* (e.g., "Client Transformation," "Before & After").
+
+## Phase 3: The 30-Day Execution Plan
+- **Week 1: The Foundation.** Profile optimization (Google Business Profile + Bio), Content Batching.
+- **Week 2: The "Pattern Interrupt".** Launch 3 Reels/TikToks using specific hooks provided below.
+- **Week 3: The Offer.** specific "Irresistible Offer" script for this industry to drive immediate calls.
+- **Week 4: The Scale.** Introduction to a low-budget ($10/day) Meta Ads strategy for local retargeting.
+
+## Bonus: 5 "Copy-Paste" Video Hooks
+Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailored to the ${biz.type} niche.`;
+
+        setGeneratedPrompts({ websitePrompt, marketingPrompt });
+        setIsGenerating(false);
+    }, []);
 
     // --- Logic: 5. Client-Side Filtering & Sorting ---
 
@@ -1300,7 +1319,7 @@ export default function BusinessFinderApp() {
                                                 crmEntry={crmData[getBusinessId(biz)]}
                                                 updateCRM={updateCRM}
 
-                                                handleGenerateAudit={handleGenerateAudit}
+                                                handleGeneratePrompts={handleGeneratePrompts}
                                                 handleOpenCrm={setEditingCrmBiz}
                                             />
                                         ))}
@@ -1324,95 +1343,91 @@ export default function BusinessFinderApp() {
                 )}
             </main>
 
-            {/* Audit Modal */}
+            {/* Prompts Modal */}
             {selectedBusiness && (
                 <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200 flex flex-col">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200 flex flex-col">
 
                         {/* Header */}
                         <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
                             <div>
                                 <h3 className="font-bold text-xl text-white flex items-center gap-2">
-                                    <Sparkles className="w-5 h-5 text-violet-400" /> AI Digital Audit
+                                    <Sparkles className="w-5 h-5 text-violet-400" /> AI Business Prompts
                                 </h3>
-                                <p className="text-sm text-slate-400">Analysis for <span className="font-semibold text-white">{selectedBusiness.title}</span></p>
+                                <p className="text-sm text-slate-400">Generated for <span className="font-semibold text-white">{selectedBusiness.title}</span></p>
                             </div>
-                            <button onClick={() => { setSelectedBusiness(null); setAuditReport(null); }} className="text-slate-400 hover:text-white transition-colors">
+                            <button onClick={() => { setSelectedBusiness(null); setGeneratedPrompts(null); }} className="text-slate-400 hover:text-white transition-colors">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
 
                         {/* Content */}
                         <div className="p-6 space-y-6 flex-1">
-                            {isAuditing ? (
+                            {isGenerating ? (
                                 <div className="flex flex-col items-center justify-center py-12 space-y-4">
                                     <div className="relative">
                                         <div className="w-16 h-16 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin"></div>
                                         <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-violet-400 animate-pulse" />
                                     </div>
-                                    <p className="text-slate-300 font-medium animate-pulse">Generating comprehensive report...</p>
+                                    <p className="text-slate-300 font-medium animate-pulse">Constructing detailed prompts...</p>
                                 </div>
-                            ) : auditError ? (
-                                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-4 rounded-xl text-center">
-                                    <p>{auditError}</p>
-                                    <button onClick={() => handleGenerateAudit(selectedBusiness!)} className="mt-2 text-sm underline hover:text-rose-300">Try Again</button>
-                                </div>
-                            ) : auditReport ? (
-                                <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-500">
+                            ) : generatedPrompts ? (
+                                <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
 
-                                    {/* Summary */}
-                                    <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                                        <h4 className="text-blue-400 text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
-                                            <Sparkles className="w-4 h-4" /> Executive Summary
-                                        </h4>
-                                        <p className="text-slate-300 leading-relaxed">{auditReport.summary}</p>
+                                    {/* Website Prompt Section */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-blue-400 text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                                                <Globe className="w-4 h-4" /> 1. Website Build Prompt
+                                            </h4>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(generatedPrompts.websitePrompt);
+                                                    alert("Website Prompt copied to clipboard!");
+                                                }}
+                                                className="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
+                                            >
+                                                Copy Prompt
+                                            </button>
+                                        </div>
+                                        <div className="relative">
+                                            <textarea
+                                                readOnly
+                                                value={generatedPrompts.websitePrompt}
+                                                className="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-300 text-sm font-mono leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                                            />
+                                        </div>
+                                        <p className="text-xs text-slate-500">
+                                            Tip: Paste this into <strong>v0.dev</strong>, <strong>bolt.new</strong>, or <strong>Lovable</strong> to generate a site instantly.
+                                        </p>
                                     </div>
 
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        {/* Strengths */}
-                                        <div className="bg-emerald-500/5 border border-emerald-500/10 p-4 rounded-xl">
-                                            <h4 className="text-emerald-400 text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                <CheckCircle className="w-4 h-4" /> Key Strengths
+                                    {/* Marketing Prompt Section */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-pink-400 text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                                                <Target className="w-4 h-4" /> 2. SMMA & Growth Prompt
                                             </h4>
-                                            <ul className="space-y-2">
-                                                {auditReport.strengths.map((str, i) => (
-                                                    <li key={i} className="flex items-start gap-2 text-slate-300 text-sm">
-                                                        <span className="text-emerald-500 mt-1">•</span> {str}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(generatedPrompts.marketingPrompt);
+                                                    alert("Marketing Prompt copied to clipboard!");
+                                                }}
+                                                className="text-xs bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
+                                            >
+                                                Copy Prompt
+                                            </button>
                                         </div>
-
-                                        {/* Weaknesses */}
-                                        <div className="bg-rose-500/5 border border-rose-500/10 p-4 rounded-xl">
-                                            <h4 className="text-rose-400 text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
-                                                <XOctagon className="w-4 h-4" /> Critical Gaps
-                                            </h4>
-                                            <ul className="space-y-2">
-                                                {auditReport.weaknesses.map((weak, i) => (
-                                                    <li key={i} className="flex items-start gap-2 text-slate-300 text-sm">
-                                                        <span className="text-rose-500 mt-1">•</span> {weak}
-                                                    </li>
-                                                ))}
-                                            </ul>
+                                        <div className="relative">
+                                            <textarea
+                                                readOnly
+                                                value={generatedPrompts.marketingPrompt}
+                                                className="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-300 text-sm font-mono leading-relaxed focus:ring-2 focus:ring-pink-500 outline-none resize-none"
+                                            />
                                         </div>
-                                    </div>
-
-                                    {/* Action Plan */}
-                                    <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
-                                        <h4 className="text-violet-400 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                                            <Target className="w-4 h-4" /> Recommended Strategy
-                                        </h4>
-                                        <div className="space-y-4">
-                                            {auditReport.actionable_plan.map((step, i) => (
-                                                <div key={i} className="flex items-start gap-3">
-                                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-violet-600/20 text-violet-400 flex items-center justify-center font-bold text-xs border border-violet-500/30">
-                                                        {i + 1}
-                                                    </div>
-                                                    <p className="text-slate-300 text-sm pt-0.5">{step}</p>
-                                                </div>
-                                            ))}
-                                        </div>
+                                        <p className="text-xs text-slate-500">
+                                            Tip: Paste this into <strong>ChatGPT</strong>, <strong>Claude</strong>, or <strong>Gemini</strong> to get a full growth strategy.
+                                        </p>
                                     </div>
 
                                 </div>
@@ -1425,7 +1440,7 @@ export default function BusinessFinderApp() {
                                 onClick={() => { setSelectedBusiness(null); }}
                                 className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors"
                             >
-                                Close Report
+                                Close
                             </button>
                         </div>
                     </div>
@@ -1536,21 +1551,21 @@ export default function BusinessFinderApp() {
                                 <p className="text-xs text-slate-500 mt-2">Used to fetch real-time business data from Google Maps.</p>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="px-6 py-4 bg-slate-800/50 flex justify-end gap-3 border-t border-slate-800">
-                            <button
-                                onClick={() => setShowSettings(false)}
-                                className="px-4 py-2 text-slate-400 font-medium hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => saveKeys(apiKeys)}
-                                className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all hover:scale-105"
-                            >
-                                Save Configuration
-                            </button>
-                        </div>
+                    <div className="px-6 py-4 bg-slate-800/50 flex justify-end gap-3 border-t border-slate-800">
+                        <button
+                            onClick={() => setShowSettings(false)}
+                            className="px-4 py-2 text-slate-400 font-medium hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => saveKeys(apiKeys)}
+                            className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all hover:scale-105"
+                        >
+                            Save Configuration
+                        </button>
                     </div>
                 </div>
             )}
