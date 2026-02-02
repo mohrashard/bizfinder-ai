@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, startTransition } from 'react';
 import {
     Search,
     MapPin,
@@ -20,11 +20,14 @@ import {
     Plus,
     X,
     Sparkles,
-    Target
+    Target,
+    Mail,
+    MessageSquare
 
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 // --- Types ---
 
@@ -73,7 +76,11 @@ interface ApiKeys {
 
 interface PromptData {
     websitePrompt: string;
+    websiteEmail: string;
+    websiteCallScript: string;
     marketingPrompt: string;
+    marketingEmail: string;
+    marketingCallScript: string;
 }
 
 
@@ -303,6 +310,10 @@ const MOCK_BUSINESSES: Business[] = [
 
 const getBusinessId = (biz: Business) => `${biz.title}|${biz.address}`;
 
+// Pre-computed constants for SVG circle
+const CIRCLE_RADIUS = 20;
+const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
+
 const BusinessRow = React.memo(({
     biz,
     crmEntry,
@@ -318,8 +329,18 @@ const BusinessRow = React.memo(({
     handleGeneratePrompts: (biz: Business) => void;
     handleOpenCrm: (biz: Business) => void;
 }) => {
+    // Pre-compute expensive values once per render
+    const score = biz.opportunity_score || 0;
+    const strokeOffset = CIRCLE_CIRCUMFERENCE * (1 - score / 100);
+    const scoreColorClass = score > 70 ? 'text-emerald-500' : score > 40 ? 'text-amber-500' : 'text-slate-500';
+    const scoreLabelClass = score > 70 ? 'text-emerald-400' : score > 40 ? 'text-amber-400' : 'text-slate-400';
+    const isOpen = biz.open_state?.toLowerCase().includes('open');
+    const isClosed = biz.open_state?.toLowerCase().includes('close');
+    const hasSocials = biz.socials && Object.keys(biz.socials).length > 0;
+    const hasStatus = crmEntry?.status && crmEntry.status !== 'New';
+
     return (
-        <tr className="hover:bg-slate-700/30 transition-colors">
+        <tr className="hover:bg-slate-700/30 transition-colors" style={{ contain: 'layout style' }}>
             {/* Business Name Column */}
             <td className="px-6 py-4 align-top">
                 <div className="flex items-start gap-2 group/name">
@@ -385,24 +406,24 @@ const BusinessRow = React.memo(({
                 <div className="space-y-3">
                     {/* Open Status */}
                     <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border w-fit
-                        ${biz.open_state?.toLowerCase().includes('open')
+                        ${isOpen
                             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                            : biz.open_state?.toLowerCase().includes('close')
+                            : isClosed
                                 ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                                 : 'bg-slate-700/50 text-slate-400 border-slate-600'}`}
                     >
-                        {biz.open_state?.toLowerCase().includes('open') ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        {isOpen ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                         {biz.open_state || 'Unknown'}
                     </div>
 
                     {/* Social Icons */}
                     <div className="flex gap-2">
-                        {biz.socials && Object.keys(biz.socials).length > 0 ? (
+                        {hasSocials ? (
                             <>
-                                {biz.socials.facebook && <a href={biz.socials.facebook} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
-                                {biz.socials.instagram && <a href={biz.socials.instagram} target="_blank" rel="noreferrer" className="text-pink-400 hover:text-pink-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
-                                {biz.socials.twitter && <a href={biz.socials.twitter} target="_blank" rel="noreferrer" className="text-sky-400 hover:text-sky-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
-                                {biz.socials.linkedin && <a href={biz.socials.linkedin} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-400 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
+                                {biz.socials?.facebook && <a href={biz.socials.facebook} target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
+                                {biz.socials?.instagram && <a href={biz.socials.instagram} target="_blank" rel="noreferrer" className="text-pink-400 hover:text-pink-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
+                                {biz.socials?.twitter && <a href={biz.socials.twitter} target="_blank" rel="noreferrer" className="text-sky-400 hover:text-sky-300 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
+                                {biz.socials?.linkedin && <a href={biz.socials.linkedin} target="_blank" rel="noreferrer" className="text-blue-500 hover:text-blue-400 hover:scale-110 transition-transform"><Globe className="w-4 h-4" /></a>}
                             </>
                         ) : (
                             <span className="text-xs text-slate-600 italic">No Socials Found</span>
@@ -416,12 +437,12 @@ const BusinessRow = React.memo(({
                 <button
                     onClick={() => handleOpenCrm(biz)}
                     className={`w-full flex items-center justify-center gap-2 border text-xs font-bold py-2.5 rounded-lg transition-all shadow-sm
-                        ${crmEntry?.status && crmEntry.status !== 'New'
+                        ${hasStatus
                             ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20'
                             : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300'}`}
                 >
                     <Target className="w-3.5 h-3.5" />
-                    {crmEntry?.status && crmEntry.status !== 'New' ? crmEntry.status : 'Manage'}
+                    {hasStatus ? crmEntry?.status : 'Manage'}
                 </button>
             </td>
 
@@ -430,11 +451,11 @@ const BusinessRow = React.memo(({
                 <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                         <div className="relative w-12 h-12 flex items-center justify-center">
-                            <svg className="w-full h-full transform -rotate-90">
+                            <svg className="w-full h-full transform -rotate-90" style={{ contain: 'strict' }}>
                                 <circle
                                     cx="24"
                                     cy="24"
-                                    r="20"
+                                    r={CIRCLE_RADIUS}
                                     stroke="currentColor"
                                     strokeWidth="4"
                                     fill="transparent"
@@ -443,17 +464,17 @@ const BusinessRow = React.memo(({
                                 <circle
                                     cx="24"
                                     cy="24"
-                                    r="20"
+                                    r={CIRCLE_RADIUS}
                                     stroke="currentColor"
                                     strokeWidth="4"
                                     fill="transparent"
-                                    strokeDasharray={2 * Math.PI * 20}
-                                    strokeDashoffset={2 * Math.PI * 20 * (1 - (biz.opportunity_score || 0) / 100)}
-                                    className={`${(biz.opportunity_score || 0) > 70 ? 'text-emerald-500' : (biz.opportunity_score || 0) > 40 ? 'text-amber-500' : 'text-slate-500'} transition-all duration-1000 ease-out`}
+                                    strokeDasharray={CIRCLE_CIRCUMFERENCE}
+                                    strokeDashoffset={strokeOffset}
+                                    className={scoreColorClass}
                                 />
                             </svg>
-                            <span className={`absolute inset-0 flex items-center justify-center text-sm font-bold ${(biz.opportunity_score || 0) > 70 ? 'text-emerald-400' : (biz.opportunity_score || 0) > 40 ? 'text-amber-400' : 'text-slate-400'}`}>
-                                {biz.opportunity_score}
+                            <span className={`absolute inset-0 flex items-center justify-center text-sm font-bold ${scoreLabelClass}`}>
+                                {score}
                             </span>
                         </div>
                         <div className="flex flex-col">
@@ -563,6 +584,9 @@ export default function BusinessFinderApp() {
         serpApi: ''
     });
 
+    // Get URL search params
+    const searchParams = useSearchParams();
+
     // Load keys from localStorage on mount
     useEffect(() => {
         const savedGemini = localStorage.getItem('bf_gemini_key');
@@ -576,6 +600,14 @@ export default function BusinessFinderApp() {
             }));
         }
     }, []);
+
+    // Read query from URL params (from Generator page)
+    useEffect(() => {
+        const urlQuery = searchParams.get('q');
+        if (urlQuery && !query) {
+            setQuery(urlQuery);
+        }
+    }, [searchParams, query]);
 
     // --- CRM State & Logic ---
     const [crmData, setCrmData] = useState<Record<string, CRMEntry>>({});
@@ -619,30 +651,42 @@ export default function BusinessFinderApp() {
         });
     }, []);
 
-    // --- Text Selection Tooltip Logic ---
+    // --- Text Selection Tooltip Logic (Optimized with debounce) ---
     const [selection, setSelection] = useState<{ text: string, x: number, y: number } | null>(null);
+    const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         const handleSelection = () => {
-            const selectedText = window.getSelection()?.toString().trim();
-            if (selectedText && selectedText.length > 0) {
-                const selectionRange = window.getSelection()?.getRangeAt(0);
-                const rect = selectionRange?.getBoundingClientRect();
-                if (rect) {
-                    setSelection({
-                        text: selectedText,
-                        x: rect.left + window.scrollX + rect.width / 2,
-                        y: rect.top + window.scrollY - 10
-                    });
-                }
-            } else {
-                setSelection(null);
+            // Debounce selection handling to prevent excessive state updates
+            if (selectionTimeoutRef.current) {
+                clearTimeout(selectionTimeoutRef.current);
             }
+            selectionTimeoutRef.current = setTimeout(() => {
+                const selectedText = window.getSelection()?.toString().trim();
+                if (selectedText && selectedText.length > 0) {
+                    const selectionRange = window.getSelection()?.getRangeAt(0);
+                    const rect = selectionRange?.getBoundingClientRect();
+                    if (rect) {
+                        setSelection({
+                            text: selectedText,
+                            x: rect.left + window.scrollX + rect.width / 2,
+                            y: rect.top + window.scrollY - 10
+                        });
+                    }
+                } else {
+                    setSelection(null);
+                }
+            }, 100);
         };
 
-        // Listen for mouseup
-        document.addEventListener('mouseup', handleSelection);
-        return () => document.removeEventListener('mouseup', handleSelection);
+        // Use passive event listener for better scroll performance
+        document.addEventListener('mouseup', handleSelection, { passive: true });
+        return () => {
+            document.removeEventListener('mouseup', handleSelection);
+            if (selectionTimeoutRef.current) {
+                clearTimeout(selectionTimeoutRef.current);
+            }
+        };
     }, []);
 
     const saveKeys = (newKeys: ApiKeys) => {
@@ -809,14 +853,16 @@ export default function BusinessFinderApp() {
             const params = await interpretQuery(query);
             setSearchParamsState(params);
 
-            // Sync detected filters to UI state
-            setManualFilters({
-                minRating: params.filters.minRating || 0,
-                hasWebsite: false, // Default to all
-                noWebsite: params.filters.noWebsite || false,
-                openNow: params.filters.openNow || false,
-                hasSocials: params.filters.hasSocials || false,
-                noSocials: params.filters.noSocials || false
+            // Sync detected filters to UI state (non-urgent, use transition)
+            startTransition(() => {
+                setManualFilters({
+                    minRating: params.filters.minRating || 0,
+                    hasWebsite: false, // Default to all
+                    noWebsite: params.filters.noWebsite || false,
+                    openNow: params.filters.openNow || false,
+                    hasSocials: params.filters.hasSocials || false,
+                    noSocials: params.filters.noSocials || false
+                });
             });
 
             // Step 2: Search (Page 0)
@@ -952,7 +998,76 @@ Your Output must be a professional Strategy Document formatted in Markdown.
 ## Bonus: 5 "Copy-Paste" Video Hooks
 Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailored to the ${biz.type} niche.`;
 
-        setGeneratedPrompts({ websitePrompt, marketingPrompt });
+        // 3. Website Outreach (Email + Call)
+        const websiteEmail = `Subject: Quick question about ${biz.title}'s website
+
+Hi ${biz.title} Team,
+
+I was searching for ${biz.type} services in ${biz.address.split(',')[0]} and came across your business.
+
+I noticed that you ${biz.website ? "have a website that could use a modern refresh" : "don't have a website yet"}, which might be causing you to miss out on local customers searching on Google.
+
+I'm a local web developer who specializes in building high-conversion websites for ${biz.type} businesses. I've actually already mocked up a homepage concept for you that shows how we can get you more booked appointments.
+
+Do you have a few minutes this week to take a look? I'd love to send it over.
+
+Best regards,
+[Your Name]
+Web Design Specialist`;
+
+        const websiteCallScript = `**Cold Call Script for Website Services**
+
+**Intro:**
+"Hi, this is [Your Name], I'm a local developer here in the area. am I speaking with the owner or manager?"
+
+**The Hook:**
+"Great. The reason I'm calling is I was actually looking for a ${biz.type} online and noticed you guys ${biz.website ? "have an older site" : "don't have a website up yet"}.
+
+**The Value:**
+"I work with other ${biz.type} businesses to help them rank higher on Google and get more calls. I've actually put together a quick design mockup for your business specifically.
+
+**The Ask:**
+"I'm not trying to sell you anything right now, I just want to send this mockup over so you can see what I'm talking about. What's the best email to send that to?"`;
+
+        // 4. Marketing Outreach (Email + Call)
+        const marketingEmail = `Subject: 3 ideas to grow ${biz.title} in the next 30 days
+
+Hi ${biz.title} Team,
+
+I've been analyzing the ${biz.type} market in ${biz.address.split(',')[0]} and noticed a few opportunities that your competitors aren't taking advantage of yet.
+
+I specialize in helping local businesses like yours dominate social media and get more leads. I put together a 30-day "Market Domination" strategy specifically for ${biz.title}.
+
+It includes tailored video topics and a plan to get you more reviews and customers.
+
+Are you open to me sending this strategy over for you to review? No strings attached.
+
+Best,
+[Your Name]
+Growth Partner`;
+
+        const marketingCallScript = `**Cold Call Script for SMMA/Growth**
+
+**Intro:**
+"Hi, this is [Your Name]. I help local businesses here in ${biz.address.split(',')[0]} get more customers through social media.
+
+**The Hook:**
+"I was checking out your online presence and saw you have a great reputation ${biz.rating ? `(${biz.rating} stars!)` : ""}, but I think we can get you in front of way more people.
+
+**The Value:**
+"I've sketched out a 30-day growth plan that covers exactly how to get more booked appointments using short-form video. It's working really well for others in your industry right now.
+
+**The Ask:**
+"I'd love to drop this plan off or email it to you so you can check it out. Would you be opposed to taking a look?"`;
+
+        setGeneratedPrompts({
+            websitePrompt,
+            marketingPrompt,
+            websiteEmail,
+            websiteCallScript,
+            marketingEmail,
+            marketingCallScript
+        });
         setIsGenerating(false);
     }, []);
 
@@ -1034,12 +1149,12 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
     // --- Render ---
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-200 font-sans pb-20 selection:bg-blue-500 selection:text-white overflow-x-hidden">
+        <div className="bg-slate-900 text-slate-200 font-sans pb-20 selection:bg-blue-500 selection:text-white" style={{ contain: 'layout style' }}>
 
-            {/* Decorative Background Elements */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[80px]"></div>
-                <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-600/10 rounded-full blur-[60px]"></div>
+            {/* Decorative Background Elements - Using will-change and transform for GPU acceleration */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ willChange: 'auto', contain: 'strict' }}>
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[80px]" style={{ transform: 'translateZ(0)' }}></div>
+                <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-600/10 rounded-full blur-[60px]" style={{ transform: 'translateZ(0)' }}></div>
             </div>
 
             {/* Navbar */}
@@ -1221,30 +1336,29 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
                             </button>
                         </div>
 
-                        {/* Table */}
-                        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700 overflow-hidden mb-8">
-                            <div className="overflow-x-auto custom-scrollbar">
-                                <table className="w-full text-left text-sm text-slate-400">
+                        {/* Table - Optimized with CSS containment */}
+                        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700 overflow-hidden mb-8" style={{ contain: 'content' }}>
+                            <div className="overflow-x-auto overflow-y-visible custom-scrollbar" style={{ contain: 'layout' }}>
+                                <table className="w-full text-left text-sm text-slate-400" style={{ tableLayout: 'fixed' }}>
                                     <thead className="bg-slate-900/50 border-b border-slate-700 text-xs uppercase font-semibold text-slate-500">
                                         <tr>
-                                            <th className="px-6 py-4">Business Name</th>
-                                            <th className="px-6 py-4">Details</th>
-                                            <th className="px-6 py-4">Contact</th>
-                                            <th className="px-6 py-4">Status & Socials</th>
-                                            <th className="px-6 py-4">CRM</th>
-                                            <th className="px-6 py-4">Opportunity</th>
-                                            <th className="px-6 py-4 text-right">Web & Rating</th>
+                                            <th className="px-6 py-4" style={{ width: '15%' }}>Business Name</th>
+                                            <th className="px-6 py-4" style={{ width: '18%' }}>Details</th>
+                                            <th className="px-6 py-4" style={{ width: '13%' }}>Contact</th>
+                                            <th className="px-6 py-4" style={{ width: '13%' }}>Status & Socials</th>
+                                            <th className="px-6 py-4" style={{ width: '10%' }}>CRM</th>
+                                            <th className="px-6 py-4" style={{ width: '13%' }}>Opportunity</th>
+                                            <th className="px-6 py-4 text-right" style={{ width: '18%' }}>Web & Rating</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-700">
                                         {filteredResults.map((biz, idx) => (
                                             <BusinessRow
-                                                key={`${biz.title}-${idx}`}
+                                                key={getBusinessId(biz)}
                                                 biz={biz}
                                                 idx={idx}
                                                 crmEntry={crmData[getBusinessId(biz)]}
                                                 updateCRM={updateCRM}
-
                                                 handleGeneratePrompts={handleGeneratePrompts}
                                                 handleOpenCrm={setEditingCrmBiz}
                                             />
@@ -1328,6 +1442,52 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
                                         </p>
                                     </div>
 
+                                    {/* Website Outreach Section */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                                    <Mail className="w-3 h-3" /> Cold Email
+                                                </h5>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(generatedPrompts.websiteEmail);
+                                                        showToast("Website Email copied!");
+                                                    }}
+                                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
+                                                >
+                                                    Copy
+                                                </button>
+                                            </div>
+                                            <textarea
+                                                readOnly
+                                                value={generatedPrompts.websiteEmail}
+                                                className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                                    <MessageSquare className="w-3 h-3" /> Call Script
+                                                </h5>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(generatedPrompts.websiteCallScript);
+                                                        showToast("Website Call Script copied!");
+                                                    }}
+                                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
+                                                >
+                                                    Copy
+                                                </button>
+                                            </div>
+                                            <textarea
+                                                readOnly
+                                                value={generatedPrompts.websiteCallScript}
+                                                className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
+                                            />
+                                        </div>
+                                    </div>
+
                                     {/* Marketing Prompt Section */}
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
@@ -1354,6 +1514,52 @@ Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailor
                                         <p className="text-xs text-slate-500">
                                             Tip: Paste this into <strong>ChatGPT</strong>, <strong>Claude</strong>, or <strong>Gemini</strong> to get a full growth strategy.
                                         </p>
+                                    </div>
+
+                                    {/* Marketing Outreach Section */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                                    <Mail className="w-3 h-3" /> Cold Email
+                                                </h5>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(generatedPrompts.marketingEmail);
+                                                        showToast("Marketing Email copied!");
+                                                    }}
+                                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
+                                                >
+                                                    Copy
+                                                </button>
+                                            </div>
+                                            <textarea
+                                                readOnly
+                                                value={generatedPrompts.marketingEmail}
+                                                className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                                    <MessageSquare className="w-3 h-3" /> Call Script
+                                                </h5>
+                                                <button
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(generatedPrompts.marketingCallScript);
+                                                        showToast("Marketing Call Script copied!");
+                                                    }}
+                                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
+                                                >
+                                                    Copy
+                                                </button>
+                                            </div>
+                                            <textarea
+                                                readOnly
+                                                value={generatedPrompts.marketingCallScript}
+                                                className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
+                                            />
+                                        </div>
                                     </div>
 
                                 </div>

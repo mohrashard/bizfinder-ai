@@ -58,6 +58,50 @@ body {
   scrollbar-color: #334155 transparent;
 }
 
+/* --- Performance Optimizations --- */
+/* GPU accelerate fixed elements */
+.fixed {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Reduce animations for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Optimize table row rendering */
+tr {
+  contain: layout style;
+}
+
+/* GPU-accelerate hover transitions */
+.transition-all,
+.transition-colors,
+.transition-transform,
+.transition-opacity {
+  will-change: auto;
+}
+
+/* Optimize blur effects - pre-composite */
+[class*="blur-"] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize backdrop blur */
+[class*="backdrop-blur"] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
 
 /* --- Improved Modal Animation --- */
 @keyframes modalEnter {

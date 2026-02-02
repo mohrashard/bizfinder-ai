@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Home, BookOpen, Info, Database, ArrowRight, Menu, X } from 'lucide-react';
+import { Home, BookOpen, Info, Database, ArrowRight, Menu, X, Dice5 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
@@ -32,7 +32,7 @@ export default function Navbar() {
                 </Link>
 
                 {/* Desktop Navigation */}
-                <div className="hidden md:flex items-center gap-8">
+                <div className="hidden md:flex items-center gap-6 lg:gap-8">
                     <Link href="/" className={`${isActive('/')} transition-colors font-medium text-sm lg:text-base flex items-center gap-2`}>
                         <Home className="w-4 h-4" /> Home
                     </Link>
@@ -44,6 +44,9 @@ export default function Navbar() {
                     </Link>
                     <Link href="/leads" className={`${isActive('/leads')} transition-colors font-medium text-sm lg:text-base flex items-center gap-2`}>
                         <Database className="w-4 h-4" /> My Leads
+                    </Link>
+                    <Link href="/generator" className={`${isActive('/generator')} transition-colors font-medium text-sm lg:text-base flex items-center gap-2`}>
+                        <Dice5 className="w-4 h-4" /> Generator
                     </Link>
                     <Link
                         href="/finder"
@@ -92,6 +95,13 @@ export default function Navbar() {
                         onClick={() => setIsMobileMenuOpen(false)}
                     >
                         <Database className="w-5 h-5" /> My Leads
+                    </Link>
+                    <Link
+                        href="/generator"
+                        className="flex items-center gap-3 p-3 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors font-medium text-lg"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                        <Dice5 className="w-5 h-5" /> Generator
                     </Link>
                     <Link
                         href="/finder"
