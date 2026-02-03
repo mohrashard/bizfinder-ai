@@ -543,7 +543,7 @@ BusinessRow.displayName = 'BusinessRow';
 
 // --- Main Component ---
 
-export default function BusinessFinderApp() {
+function BusinessFinderContent() {
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingStep, setLoadingStep] = useState<string>('');
@@ -1707,5 +1707,17 @@ Growth Partner`;
                 <span className="font-medium text-sm">{toast?.message}</span>
             </div>
         </div>
+    );
+}
+
+export default function BusinessFinderApp() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+            </div>
+        }>
+            <BusinessFinderContent />
+        </Suspense>
     );
 }
