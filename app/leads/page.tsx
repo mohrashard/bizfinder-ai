@@ -15,7 +15,12 @@ import {
     Trash2,
     ArrowDownWideNarrow,
     XCircle,
-    ArrowRight
+    ArrowRight,
+    Linkedin,
+    Facebook,
+    Instagram,
+    ExternalLink,
+    Eye
 } from 'lucide-react';
 
 // --- Types (Mirrored from finder/page.tsx) ---
@@ -182,8 +187,67 @@ export default function LeadsPage() {
                                     {/* Business Info */}
                                     <div className="flex-1">
                                         <div className="flex items-start justify-between mb-2">
-                                            <div>
-                                                <h3 className="text-xl font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">{entry.business.title}</h3>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <h3 className="text-xl font-bold text-white group-hover:text-blue-300 transition-colors">{entry.business.title}</h3>
+
+                                                    <div className="relative group/verify">
+                                                        <button
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-slate-700 hover:bg-blue-600 hover:text-white rounded-md text-slate-400 flex items-center gap-1.5 px-2"
+                                                            title="Deep Dive Verification"
+                                                        >
+                                                            <Eye className="w-3.5 h-3.5" />
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider">Verify</span>
+                                                        </button>
+
+                                                        <div className="absolute left-0 top-full mt-1 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-50 invisible group-hover/verify:visible opacity-0 group-hover/verify:opacity-100 transition-all transform origin-top-left scale-95 group-hover/verify:scale-100">
+                                                            <div className="px-3 py-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-700/50 mb-1">
+                                                                Verification Suite
+                                                            </div>
+                                                            <a
+                                                                href={`https://www.google.com/search?q=${encodeURIComponent(entry.business.title + " " + entry.business.address)}`}
+                                                                target="_blank" rel="noreferrer"
+                                                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                                                            >
+                                                                <Search className="w-3.5 h-3.5 text-blue-400" />
+                                                                Google Search
+                                                            </a>
+                                                            <a
+                                                                href={`https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(entry.business.title + " " + entry.business.address)}`}
+                                                                target="_blank" rel="noreferrer"
+                                                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                                                            >
+                                                                <Linkedin className="w-3.5 h-3.5 text-blue-500" />
+                                                                LinkedIn Profile
+                                                            </a>
+                                                            <a
+                                                                href={`https://www.facebook.com/search/top/?q=${encodeURIComponent(entry.business.title + " " + entry.business.address)}`}
+                                                                target="_blank" rel="noreferrer"
+                                                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                                                            >
+                                                                <Facebook className="w-3.5 h-3.5 text-blue-600" />
+                                                                Facebook Page
+                                                            </a>
+                                                            <a
+                                                                href={`https://www.instagram.com/explore/tags/${encodeURIComponent(entry.business.title.replace(/\s+/g, '').toLowerCase())}/`}
+                                                                target="_blank" rel="noreferrer"
+                                                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                                                            >
+                                                                <Instagram className="w-3.5 h-3.5 text-pink-500" />
+                                                                Instagram Tag
+                                                            </a>
+                                                            <a
+                                                                href={`https://www.yelp.com/search?find_desc=${encodeURIComponent(entry.business.title)}&find_loc=${encodeURIComponent(entry.business.address)}`}
+                                                                target="_blank" rel="noreferrer"
+                                                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                                                            >
+                                                                <ExternalLink className="w-3.5 h-3.5 text-rose-500" />
+                                                                Yelp Business
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <div className="flex items-center gap-2 text-sm text-slate-400">
                                                     <span className="bg-slate-700/50 px-2 py-0.5 rounded text-xs border border-slate-600/50">{entry.business.type || 'Business'}</span>
                                                     <span>•</span>

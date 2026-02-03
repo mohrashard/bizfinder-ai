@@ -6,8 +6,6 @@ import {
     Shuffle,
     Globe2,
     Building2,
-    MapPin,
-    TreePine,
     Briefcase,
     Copy,
     CheckCircle2,
@@ -22,60 +20,38 @@ import Link from 'next/link';
 
 interface LocationData {
     cities: string[];
-    towns: string[];
-    villages: string[];
 }
 
 const COUNTRIES: Record<string, LocationData> = {
     "United States": {
-        cities: ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Jacksonville", "Fort Worth", "Columbus", "Charlotte", "Seattle", "Denver", "Boston", "Detroit", "Nashville"],
-        towns: ["Aspen", "Nantucket", "Sedona", "Key West", "Savannah", "Santa Fe", "Bar Harbor", "Taos", "Carmel", "Mystic", "Provincetown", "Telluride", "Woodstock", "Ashland", "Beaufort", "Stowe", "Natchez", "Sonoma", "Kennebunkport", "Mackinac Island"],
-        villages: ["Harmony", "Intercourse", "Bird-in-Hand", "Paradise", "Blue Ball", "Big Foot", "Truth or Consequences", "Boring", "Hell", "Nuttsville"]
+        cities: ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose", "Austin", "Jacksonville", "Fort Worth", "Columbus", "Charlotte", "Seattle", "Denver", "Boston", "Detroit", "Nashville"]
     },
     "United Kingdom": {
-        cities: ["London", "Birmingham", "Manchester", "Glasgow", "Liverpool", "Bristol", "Sheffield", "Leeds", "Edinburgh", "Leicester", "Cardiff", "Belfast", "Nottingham", "Newcastle", "Brighton", "Oxford", "Cambridge", "Southampton", "Portsmouth", "Reading"],
-        towns: ["Stratford-upon-Avon", "Bath", "Windsor", "Chester", "Canterbury", "York", "Whitby", "Keswick", "Windermere", "St Ives", "Bournemouth", "Torquay", "Scarborough", "Harrogate", "Buxton", "Llandudno", "Oban", "Inverness", "Fort William", "Pitlochry"],
-        villages: ["Bibury", "Castle Combe", "Lavenham", "Painswick", "Broadway", "Lower Slaughter", "Upper Slaughter", "Portmeirion", "Clovelly", "Robin Hood's Bay"]
+        cities: ["London", "Birmingham", "Manchester", "Glasgow", "Liverpool", "Bristol", "Sheffield", "Leeds", "Edinburgh", "Leicester", "Cardiff", "Belfast", "Nottingham", "Newcastle", "Brighton", "Oxford", "Cambridge", "Southampton", "Portsmouth", "Reading"]
     },
     "Canada": {
-        cities: ["Toronto", "Vancouver", "Montreal", "Calgary", "Ottawa", "Edmonton", "Winnipeg", "Quebec City", "Hamilton", "Victoria", "Halifax", "Regina", "Saskatoon", "St. John's", "Kelowna", "Waterloo", "Kingston", "Thunder Bay", "Windsor", "Charlottetown"],
-        towns: ["Banff", "Jasper", "Niagara-on-the-Lake", "Tofino", "Whistler", "Lunenburg", "Dawson City", "Churchill", "Gimli", "Peggy's Cove", "Canmore", "Nelson", "Revelstoke", "Ucluelet", "Tobermory", "St. Andrews", "Blue Mountain", "Mont-Tremblant", "Percé", "Tadoussac"],
-        villages: ["Alert", "Osoyoos", "Waterton", "Lake Louise", "Radium Hot Springs", "Fernie", "Smithers", "Kaslo", "New Denver", "Rossland"]
+        cities: ["Toronto", "Vancouver", "Montreal", "Calgary", "Ottawa", "Edmonton", "Winnipeg", "Quebec City", "Hamilton", "Victoria", "Halifax", "Regina", "Saskatoon", "St. John's", "Kelowna", "Waterloo", "Kingston", "Thunder Bay", "Windsor", "Charlottetown"]
     },
     "Australia": {
-        cities: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Gold Coast", "Canberra", "Newcastle", "Wollongong", "Hobart", "Cairns", "Darwin", "Townsville", "Toowoomba", "Geelong", "Ballarat", "Bendigo", "Launceston", "Mackay", "Rockhampton"],
-        towns: ["Broome", "Byron Bay", "Port Douglas", "Alice Springs", "Margaret River", "Noosa", "Airlie Beach", "Port Macquarie", "Yamba", "Merimbula", "Jindabyne", "Bright", "Daylesford", "Lorne", "Apollo Bay", "Dunsborough", "Albany", "Esperance", "Fremantle", "Manly"],
-        villages: ["Mission Beach", "Kuranda", "Coober Pedy", "Lightning Ridge", "Nimbin", "Tilba", "Maleny", "Hahndorf", "Tanunda", "Cradle Mountain"]
+        cities: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Gold Coast", "Canberra", "Newcastle", "Wollongong", "Hobart", "Cairns", "Darwin", "Townsville", "Toowoomba", "Geelong", "Ballarat", "Bendigo", "Launceston", "Mackay", "Rockhampton"]
     },
     "Germany": {
-        cities: ["Berlin", "Munich", "Hamburg", "Frankfurt", "Cologne", "Stuttgart", "Düsseldorf", "Leipzig", "Dortmund", "Essen", "Bremen", "Dresden", "Hanover", "Nuremberg", "Duisburg", "Bochum", "Wuppertal", "Bielefeld", "Bonn", "Münster"],
-        towns: ["Heidelberg", "Rothenburg ob der Tauber", "Baden-Baden", "Füssen", "Garmisch-Partenkirchen", "Bamberg", "Würzburg", "Regensburg", "Konstanz", "Trier", "Lübeck", "Quedlinburg", "Weimar", "Potsdam", "Schwerin", "Goslar", "Passau", "Koblenz", "Cochem", "Bacharach"],
-        villages: ["Hallstatt", "Mittenwald", "Oberammergau", "Rüdesheim", "St. Goar", "Beilstein", "Monschau", "Reit im Winkl", "Berchtesgaden", "Hohenschwangau"]
+        cities: ["Berlin", "Munich", "Hamburg", "Frankfurt", "Cologne", "Stuttgart", "Düsseldorf", "Leipzig", "Dortmund", "Essen", "Bremen", "Dresden", "Hanover", "Nuremberg", "Duisburg", "Bochum", "Wuppertal", "Bielefeld", "Bonn", "Münster"]
     },
     "France": {
-        cities: ["Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille", "Rennes", "Reims", "Saint-Étienne", "Le Havre", "Toulon", "Grenoble", "Dijon", "Angers", "Nîmes", "Villeurbanne"],
-        towns: ["Aix-en-Provence", "Avignon", "Cannes", "Arles", "Colmar", "Carcassonne", "Saint-Malo", "Chamonix", "Annecy", "Bayeux", "Honfleur", "Giverny", "Amboise", "Chinon", "Sarlat", "Rocamadour", "Gordes", "Éze", "Menton", "Antibes"],
-        villages: ["Riquewihr", "Eguisheim", "Roussillon", "Lourmarin", "Les Baux-de-Provence", "Gordes", "Mont Saint-Michel", "Beynac-et-Cazenac", "La Roque-Gageac", "Saint-Cirq-Lapopie"]
+        cities: ["Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille", "Rennes", "Reims", "Saint-Étienne", "Le Havre", "Toulon", "Grenoble", "Dijon", "Angers", "Nîmes", "Villeurbanne"]
     },
     "Japan": {
-        cities: ["Tokyo", "Osaka", "Kyoto", "Nagoya", "Yokohama", "Kobe", "Fukuoka", "Sapporo", "Hiroshima", "Sendai", "Nara", "Kanazawa", "Nagasaki", "Kumamoto", "Okayama", "Kagoshima", "Matsuyama", "Niigata", "Hamamatsu", "Shizuoka"],
-        towns: ["Takayama", "Hakone", "Nikko", "Kamakura", "Ise", "Miyajima", "Naoshima", "Beppu", "Matsumoto", "Shirakawa", "Gero", "Kusatsu", "Nozawa", "Echizen", "Tono", "Karuizawa", "Atami", "Shimoda", "Onomichi", "Kurashiki"],
-        villages: ["Shirakawa-go", "Gokayama", "Tsumago", "Magome", "Ainokura", "Ogimachi", "Iiyama", "Ine", "Ouchi-juku", "Hida"]
+        cities: ["Tokyo", "Osaka", "Kyoto", "Nagoya", "Yokohama", "Kobe", "Fukuoka", "Sapporo", "Hiroshima", "Sendai", "Nara", "Kanazawa", "Nagasaki", "Kumamoto", "Okayama", "Kagoshima", "Matsuyama", "Niigata", "Hamamatsu", "Shizuoka"]
     },
     "India": {
-        cities: ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad", "Pune", "Jaipur", "Surat", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna", "Vadodara", "Ghaziabad"],
-        towns: ["Udaipur", "Jodhpur", "Jaisalmer", "Pushkar", "Rishikesh", "Haridwar", "Varanasi", "Amritsar", "Agra", "Mysore", "Manali", "Shimla", "Darjeeling", "Ooty", "Munnar", "Goa", "Pondicherry", "Mahabalipuram", "Hampi", "Khajuraho"],
-        villages: ["Mawlynnong", "Malana", "Ziro", "Poovar", "Gandikota", "Khimsar", "Nako", "Chitkul", "Turtuk", "Lachen"]
+        cities: ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad", "Pune", "Jaipur", "Surat", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna", "Vadodara", "Ghaziabad"]
     },
     "United Arab Emirates": {
-        cities: ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain", "Al Ain", "Khor Fakkan", "Dibba"],
-        towns: ["Hatta", "Liwa", "Madinat Zayed", "Ghayathi", "Ruwais", "Dalma Island", "Sir Bani Yas", "Kalba", "Masafi", "Mina Seyahi"],
-        villages: ["Shees", "Wadi Shab", "Bidiya", "Al Aqah", "Jebel Jais", "Snoopy Island", "Dibba Al-Hisn", "Wadi Al Wurayah", "Al Bithnah", "Falaj Al Mualla"]
+        cities: ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain", "Al Ain", "Khor Fakkan", "Dibba"]
     },
     "Brazil": {
-        cities: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza", "Belo Horizonte", "Manaus", "Curitiba", "Recife", "Porto Alegre", "Belém", "Goiânia", "Guarulhos", "Campinas", "São Luís", "São Gonçalo", "Maceió", "Duque de Caxias", "Natal", "Campo Grande"],
-        towns: ["Paraty", "Ouro Preto", "Tiradentes", "Búzios", "Bonito", "Chapada Diamantina", "Lençóis", "Jericoacoara", "Fernando de Noronha", "Gramado", "Campos do Jordão", "Petrópolis", "Ilhabela", "Trancoso", "Arraial d'Ajuda", "Itacaré", "Morro de São Paulo", "Alter do Chão", "Pirenópolis", "São Miguel dos Milagres"],
-        villages: ["Caraíva", "Capão", "São Jorge", "Alto Paraíso", "Praia do Forte", "Barra Grande", "Pipa", "Cumbuco", "Águas Belas", "Mucugê"]
+        cities: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza", "Belo Horizonte", "Manaus", "Curitiba", "Recife", "Porto Alegre", "Belém", "Goiânia", "Guarulhos", "Campinas", "São Luís", "São Gonçalo", "Maceió", "Duque de Caxias", "Natal", "Campo Grande"]
     }
 };
 
@@ -143,8 +119,6 @@ const BUSINESS_NICHES: string[] = [
 export default function RandomGeneratorPage() {
     const [country, setCountry] = useState<string>('');
     const [city, setCity] = useState<string>('');
-    const [town, setTown] = useState<string>('');
-    const [village, setVillage] = useState<string>('');
     const [niche, setNiche] = useState<string>('');
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [isSpinning, setIsSpinning] = useState<{ [key: string]: boolean }>({});
@@ -168,8 +142,6 @@ export default function RandomGeneratorPage() {
             setCountry(newCountry);
             // Reset dependent fields
             setCity('');
-            setTown('');
-            setVillage('');
         });
     }, []);
 
@@ -178,22 +150,6 @@ export default function RandomGeneratorPage() {
         animateSpin('city', () => {
             const cities = COUNTRIES[country]?.cities || [];
             setCity(getRandomItem(cities));
-        });
-    }, [country]);
-
-    const generateTown = useCallback(() => {
-        if (!country) return;
-        animateSpin('town', () => {
-            const towns = COUNTRIES[country]?.towns || [];
-            setTown(getRandomItem(towns));
-        });
-    }, [country]);
-
-    const generateVillage = useCallback(() => {
-        if (!country) return;
-        animateSpin('village', () => {
-            const villages = COUNTRIES[country]?.villages || [];
-            setVillage(getRandomItem(villages));
         });
     }, [country]);
 
@@ -208,13 +164,11 @@ export default function RandomGeneratorPage() {
         const newCountry = getRandomItem(countries);
         const data = COUNTRIES[newCountry];
 
-        setIsSpinning({ country: true, city: true, town: true, village: true, niche: true });
+        setIsSpinning({ country: true, city: true, niche: true });
 
         setTimeout(() => {
             setCountry(newCountry);
             setCity(getRandomItem(data.cities));
-            setTown(getRandomItem(data.towns));
-            setVillage(getRandomItem(data.villages));
             setNiche(getRandomItem(BUSINESS_NICHES));
             setIsSpinning({});
         }, 500);
@@ -227,9 +181,9 @@ export default function RandomGeneratorPage() {
     };
 
     const buildSearchQuery = () => {
-        const location = village || town || city || country;
-        if (!location || !niche) return '';
-        return `${niche} in ${location}`;
+        if (!country || !city || !niche) return '';
+        const displayCountry = country === "United Arab Emirates" ? "UAE" : country;
+        return `${niche} , ${city} , ${displayCountry}`.toLowerCase();
     };
 
     const searchQuery = buildSearchQuery();
@@ -298,34 +252,6 @@ export default function RandomGeneratorPage() {
                         disabled={!country}
                     />
 
-                    {/* Town Card */}
-                    <GeneratorCard
-                        icon={<MapPin className="w-6 h-6" />}
-                        iconColor="text-emerald-400"
-                        title="Town"
-                        value={town}
-                        placeholder={country ? "Click to generate..." : "Select a country first"}
-                        isSpinning={isSpinning['town']}
-                        copied={copiedField === 'town'}
-                        onGenerate={generateTown}
-                        onCopy={() => copyToClipboard(town, 'town')}
-                        disabled={!country}
-                    />
-
-                    {/* Village Card */}
-                    <GeneratorCard
-                        icon={<TreePine className="w-6 h-6" />}
-                        iconColor="text-teal-400"
-                        title="Village"
-                        value={village}
-                        placeholder={country ? "Click to generate..." : "Select a country first"}
-                        isSpinning={isSpinning['village']}
-                        copied={copiedField === 'village'}
-                        onGenerate={generateVillage}
-                        onCopy={() => copyToClipboard(village, 'village')}
-                        disabled={!country}
-                    />
-
                     {/* Niche Card - Full Width */}
                     <div className="md:col-span-2">
                         <GeneratorCard
@@ -384,8 +310,8 @@ export default function RandomGeneratorPage() {
                 <div className="mt-12 grid md:grid-cols-3 gap-6">
                     <TipCard
                         emoji="🎯"
-                        title="Target Small Markets"
-                        description="Villages and small towns often have businesses desperate for digital services."
+                        title="Target Major Markets"
+                        description="Focus on large cities where businesses often have higher budgets for digital services."
                     />
                     <TipCard
                         emoji="🌍"
@@ -459,8 +385,8 @@ function GeneratorCard({
                         onClick={onGenerate}
                         disabled={disabled}
                         className={`p-2 rounded-lg transition-all ${disabled
-                                ? 'bg-slate-700/30 text-slate-600 cursor-not-allowed'
-                                : 'bg-slate-700/50 hover:bg-slate-600/50 text-slate-400 hover:text-white'
+                            ? 'bg-slate-700/30 text-slate-600 cursor-not-allowed'
+                            : 'bg-slate-700/50 hover:bg-slate-600/50 text-slate-400 hover:text-white'
                             }`}
                         title="Generate random"
                     >
@@ -472,8 +398,8 @@ function GeneratorCard({
             <div
                 onClick={disabled ? undefined : onGenerate}
                 className={`min-h-[60px] flex items-center justify-center rounded-xl border border-dashed transition-all ${disabled
-                        ? 'border-slate-700/50 bg-slate-800/30 cursor-not-allowed'
-                        : 'border-slate-600/50 bg-slate-800/30 hover:bg-slate-700/30 hover:border-slate-500/50 cursor-pointer'
+                    ? 'border-slate-700/50 bg-slate-800/30 cursor-not-allowed'
+                    : 'border-slate-600/50 bg-slate-800/30 hover:bg-slate-700/30 hover:border-slate-500/50 cursor-pointer'
                     } ${large ? 'min-h-[80px]' : ''}`}
             >
                 {value ? (

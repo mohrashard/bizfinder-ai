@@ -22,7 +22,12 @@ import {
     Sparkles,
     Target,
     Mail,
-    MessageSquare
+    MessageSquare,
+    Linkedin,
+    Facebook,
+    Instagram,
+    ExternalLink,
+    Eye
 
 } from 'lucide-react';
 import Link from 'next/link';
@@ -340,7 +345,7 @@ const BusinessRow = React.memo(({
     const hasStatus = crmEntry?.status && crmEntry.status !== 'New';
 
     return (
-        <tr className="hover:bg-slate-700/30 transition-colors" style={{ contain: 'layout style' }}>
+        <tr className="hover:bg-slate-700/30 transition-colors">
             {/* Business Name Column */}
             <td className="px-6 py-4 align-top">
                 <div className="flex items-start gap-2 group/name">
@@ -350,15 +355,61 @@ const BusinessRow = React.memo(({
                             {biz.type || 'Business'}
                         </div>
                     </div>
-                    <a
-                        href={`https://www.google.com/search?q=${encodeURIComponent(biz.title + " " + biz.address)}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1.5 bg-slate-700 hover:bg-blue-600 hover:text-white rounded-md text-slate-400"
-                        title="Verify on Google"
-                    >
-                        <Search className="w-3.5 h-3.5" />
-                    </a>
+                    <div className="relative group/verify">
+                        <button
+                            className="opacity-0 group-hover/name:opacity-100 transition-opacity p-1.5 bg-slate-700 hover:bg-blue-600 hover:text-white rounded-md text-slate-400 flex items-center gap-1.5 px-2"
+                            title="Deep Dive Verification"
+                        >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">Verify</span>
+                        </button>
+
+                        <div className="absolute left-0 top-full mt-1 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-50 invisible group-hover/verify:visible opacity-0 group-hover/verify:opacity-100 transition-all transform origin-top-left scale-95 group-hover/verify:scale-100">
+                            <div className="px-3 py-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-700/50 mb-1">
+                                Verification Suite
+                            </div>
+                            <a
+                                href={`https://www.google.com/search?q=${encodeURIComponent(biz.title + " " + biz.address)}`}
+                                target="_blank" rel="noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                            >
+                                <Search className="w-3.5 h-3.5 text-blue-400" />
+                                Google Search
+                            </a>
+                            <a
+                                href={`https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(biz.title + " " + biz.address)}`}
+                                target="_blank" rel="noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                            >
+                                <Linkedin className="w-3.5 h-3.5 text-blue-500" />
+                                LinkedIn Profile
+                            </a>
+                            <a
+                                href={`https://www.facebook.com/search/top/?q=${encodeURIComponent(biz.title + " " + biz.address)}`}
+                                target="_blank" rel="noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                            >
+                                <Facebook className="w-3.5 h-3.5 text-blue-600" />
+                                Facebook Page
+                            </a>
+                            <a
+                                href={`https://www.instagram.com/explore/tags/${encodeURIComponent(biz.title.replace(/\s+/g, '').toLowerCase())}/`}
+                                target="_blank" rel="noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                            >
+                                <Instagram className="w-3.5 h-3.5 text-pink-500" />
+                                Instagram Tag
+                            </a>
+                            <a
+                                href={`https://www.yelp.com/search?find_desc=${encodeURIComponent(biz.title)}&find_loc=${encodeURIComponent(biz.address)}`}
+                                target="_blank" rel="noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-blue-600/20 hover:text-white transition-colors"
+                            >
+                                <ExternalLink className="w-3.5 h-3.5 text-rose-500" />
+                                Yelp Business
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </td>
 
@@ -451,7 +502,7 @@ const BusinessRow = React.memo(({
                 <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                         <div className="relative w-12 h-12 flex items-center justify-center">
-                            <svg className="w-full h-full transform -rotate-90" style={{ contain: 'strict' }}>
+                            <svg className="w-full h-full transform -rotate-90">
                                 <circle
                                     cx="24"
                                     cy="24"
@@ -584,6 +635,19 @@ function BusinessFinderContent() {
         serpApi: ''
     });
 
+    // Body Scroll Lock logic
+    useEffect(() => {
+        const isModalOpen = !!selectedBusiness || showSettings || !!editingCrmBiz;
+        if (isModalOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [selectedBusiness, showSettings, editingCrmBiz]);
+
     // Get URL search params
     const searchParams = useSearchParams();
 
@@ -604,10 +668,10 @@ function BusinessFinderContent() {
     // Read query from URL params (from Generator page)
     useEffect(() => {
         const urlQuery = searchParams.get('q');
-        if (urlQuery && !query) {
+        if (urlQuery) {
             setQuery(urlQuery);
         }
-    }, [searchParams, query]);
+    }, [searchParams]);
 
     // --- CRM State & Logic ---
     const [crmData, setCrmData] = useState<Record<string, CRMEntry>>({});
@@ -930,135 +994,161 @@ function BusinessFinderContent() {
     };
 
     // --- Logic: 7. Generate Prompts ---
-
     const handleGeneratePrompts = React.useCallback((biz: Business) => {
         setIsGenerating(true);
         setSelectedBusiness(biz);
 
-        // 1. Detailed Website Prompt
-        const websitePrompt = `Act as a Senior Frontend Architect and UI/UX Expert. Your goal is to architect and build a high-conversion, premium website for a client.
+        // --- Dynamic Strategic Intelligence ---
+        // Diversity nodes for unique psychological & technical positioning
+        const strategyNodes = [
+            { id: 'noir', name: "Midnight Minimalist", color: "Obsidian & Electric Cyan", font: "Geist Mono", strategy: "Authority-led scarcity", techStack: "Next.js 15, Framer Motion, Tailwind CSS" },
+            { id: 'titan', name: "Industrial Titan", color: "Steel Gray & Safety Orange", font: "Inter Tight", strategy: "Process-driven reliability", techStack: "Next.js 15, Shadcn/UI, Zod" },
+            { id: 'zenith', name: "Modern Zenith", color: "Pure White & Royal Violet", font: "Outfit", strategy: "Psychological trust & ease", techStack: "Next.js 15, Radix UI, Lucide" },
+            { id: 'emerald', name: "Eco-Tech", color: "Deep Forest & Mint", font: "Urbanist", strategy: "Community & Sustainablity", techStack: "Next.js 15, Magic UI, Tailwind" },
+            { id: 'luxe', name: "Signature Luxe", color: "Matte Black & Champagne Gold", font: "Playfair Display", strategy: "Exclusivity & Distinction", techStack: "Next.js 15, Aceternity UI, Framer" }
+        ];
 
-Client Profile:
-- **Business Name:** ${biz.title}
-- **Industry:** ${biz.type || "General Service"}
+        const hash = biz.title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+        // Generate a unique hex color based on hash for the business
+        const hue = hash % 360;
+        const uniqueHex = (() => {
+            const h = hue / 360;
+            const s = 0.7;
+            const l = 0.5;
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            const kt = (t: number) => {
+                let temp = t;
+                if (temp < 0) temp += 1;
+                if (temp > 1) temp -= 1;
+                if (temp < 1 / 6) return p + (q - p) * 6 * temp;
+                if (temp < 1 / 2) return q;
+                if (temp < 2 / 3) return p + (q - p) * (2 / 3 - temp) * 6;
+                return p;
+            };
+            const toHex = (x: number) => Math.round(x * 255).toString(16).padStart(2, '0');
+            return `#${toHex(kt(h + 1 / 3))}${toHex(kt(h))}${toHex(kt(h - 1 / 3))}`;
+        })();
+
+        const node = strategyNodes[hash % strategyNodes.length];
+        const location = biz.address.split(',').pop()?.trim() || "local area";
+        const primaryBusinessTerm = biz.type || "Local Business";
+
+        // 1. Senior Architect Landing Page Prompt
+        const websitePrompt = `Act as a Senior Frontend Architect and Conversion Psychologist. Your mission is to build the absolute BEST, premium, and ultra-high-converting landing page for ${biz.title}. This site must be state-of-the-art, with a "Fortune 500" minimalist aesthetic.
+
+Client Context:
+- **Client:** ${biz.title} (${primaryBusinessTerm})
+- **Locality:** ${biz.address}
+- **Vibe:** ${node.name} (Premium, Modern, Trust-focused)
+- **Unique Brand Color:** ${uniqueHex} (Use this as the primary brand color for highlights, buttons, and accents)
+
+Technical Architecture:
+- **Stack:** ${node.techStack}, React 19, Lucide Icons, Framer Motion.
+- **Design Principles:** Glassmorphism, subtle gradients, micro-interactions, and flawless responsive design.
+- **Performance:** 100/100 Lighthouse score. Zero CLS. Semantic SEO structure.
+
+Required Sections (Minimum 5):
+1. **Dynamic Hero Section:** A stunning "pattern interrupt" hero with a bold value proposition, unique brand color gradients, and a clear primary Call To Action (CTA).
+2. **About & Heritage:** A sophisticated narrative section explaining why ${biz.title} is the leader in ${location}. Focus on authority and local trust.
+3. **The "Bento" Services Grid:** A high-performance grid (Bento Box style) showcasing services with hover effects and detailed descriptions.
+4. **Social Proof & Trust:** A "Wall of Love" or testimonial section with verified local badges and rating visualizations (Google/Yelp style).
+5. **Contact & Interactive Booking:** A sleek, frictionless lead capture form or booking drawer that feels integrated into the OS.
+
+Prompt Output:
+Provide the **COMPLETE, ready-to-deploy React component code** for this long, single-page landing page. Include all Tailwind CSS classes, Lucide icons, and Framer Motion animations. Use REAL, industry-specific copy—NO PLACEHOLDERS. The output should be a masterpiece that wows the client immediately.`;
+
+        // 2. Senior Social Media Manager (SMMA) Prompt
+        // 2. Senior Social Media Manager (SMMA) Prompt
+        const marketingPrompt = `Act as an Elite Growth Engineer and SMMA Agency Lead. Your task is to architect a comprehensive "Market Domination & Scaling Protocol" for ${biz.title}.
+
+Client Context:
+- **Business:** ${biz.title} (${primaryBusinessTerm})
 - **Location:** ${biz.address}
-- **Phone:** ${biz.phone || "Placeholder"}
-- **Current Status:** ${biz.website ? "Has outdated site" : "No Professional Website"}
-- **Key Offering:** Service-based business in ${biz.address.split(',').pop()?.trim() || "local area"}.
+- **Primary Color:** ${uniqueHex}
 
-Technical Specifications (Strict adherence required):
-- **Framework:** Next.js 14+ (App Router).
-- **Styling:** Tailwind CSS (use strictly semantic class names where possible).
-- **UI Library:** Shadcn/UI (Radix Primitives) for accessible, premium components.
-- **Icons:** Lucide React.
-- **Animation:** Framer Motion (subtle, scroll-triggered fade-ins for sections).
-- **Fonts:** 'Inter' for body, 'Playfair Display' or 'Montserrat' for headings depending on brand vibe.
+Your mission is to provide a master plan covering these 30 critical pillars:
 
-Design Requirements:
-1.  **Visual Identity:** Create a "Trust & Authority" aesthetic. Use a professional color palette appropriate for the ${biz.type} industry (e.g., Deep Navy & Gold for Law, Sage Green & Earth Tones for Landscaping, Clean White & Medical Blue for Clinics).
-2.  **Hero Section:** Must include a high-impact headline, a subheadline addressing a primary customer pain point, and a "Sticky" Call-To-Action (CTA) button (e.g., "Get a Free Quote" or "Book Now").
-3.  **Trust Signals:** prominent placement of "5-Star Rated" badges, testimonial carousel, and recognized industry certifications using placeholder logos.
-4.  **Service Grid:** specific cards detailing their likely core services (infer these based on the industry: "${biz.type}").
-5.  **Lead Capture:** An embedded contact form with validation (Zod + React Hook Form).
-6.  **SEO Optimization:** Semantic HTML tags (<header>, <main>, <article>, <footer>) and proper H1-H6 hierarchy.
+1. **Business & Offer Audit:** Audit of ${biz.title}'s current market positioning.
+2. **ICP Definition:** Deep-dive into the Ideal Customer Profile for ${primaryBusinessTerm} in ${location}.
+3. **Competitor Analysis:** Forensic audit of top local competitors.
+4. **Brand Voice & Positioning:** Aligning tone with the ${node.name} aesthetic.
+5. **Funnel Review:** Optimizing Landing Pages, DMs, WhatsApp, and Calls.
+6. **KPI & Tracking Setup:** Implementation plan for Pixels, GA4, and Events.
+7. **Content Strategy Roadmap:** 30–60 day high-level execution plan.
+8. **Platform Prioritization:** Focus on IG, TikTok, FB, Google, etc.
+9. **Profile Optimization:** Conversion-tuning Bio, Highlights, and CTAs.
+10. **Visual Identity:** Defining templates, using ${uniqueHex} color, and font pairings.
+11. **Content Pillars:** Defining the 3-5 core themes for all content.
+12. **30-Day Content Calendar:** Day-by-day distribution schedule.
+13. **Short-Form Video Scripting:** 5 Viral scripts with specific hooks.
+14. **Creative Production:** Strategy for Reels, Shorts, and Carousels.
+15. **Copywriting:** High-converting frameworks for posts & ads.
+16. **Hashtag & SEO:** Caption keywords for local search dominance.
+17. **Posting & Scheduling:** Workflow and automation setup.
+18. **Community Management:** Protocols for DMs and Comments.
+19. **Lead Capture System:** Setup for forms and automations.
+20. **Ad Account Setup:** Audit and configuration for scaling.
+21. **Campaign Structure:** Top/Middle/Bottom of funnel hierarchy.
+22. **Initial Ad Testing:** Launching and validating the first creatives.
+23. **A/B Testing:** Continuous testing of hooks, creatives, and CTAs.
+24. **Retargeting:** Setup for custom and lookalike audiences.
+25. **Budget Allocation:** Pacing and strategic spend recommendations.
+26. **Daily Monitoring:** Checklist for performance health.
+27. **Weekly Optimization:** Pivoting based on real-time data.
+28. **Analytics Dashboard:** Blueprint for a custom reporting view.
+29. **Insights & Action Plan:** Next-month growth recommendations.
+30. **Scaling Strategy:** When and how to double the ad spend and reach.
 
-Output Format:
-Provide the **complete single-file React component** code (e.g., 'LandingPage.tsx') that is ready to be dropped into a v0.dev, bolt.new, or similar AI coding environment. Ensure all imports are handled or mocked if external.`;
+### OUTPUT FORMAT:
+Provide this master plan in a professional **Strategic PDF-Ready Markdown** format. Each point MUST contain actionable, business-specific instructions tailored to ${biz.title}. Integrate the ${uniqueHex} branding throughout the strategy.`;
 
-        // 2. Social Media Marketing (SMMA) Prompt
-        const marketingPrompt = `Act as a Chief Marketing Officer (CMO) specializing in Local SEO and Social Media Growth. Develop a comprehensive, aggressive 30-day "Market Domination" strategy for this business.
-
-Target Business:
-- **Name:** ${biz.title}
-- **Niche:** ${biz.type}
-- **Location:** ${biz.address}
-
-Your Output must be a professional Strategy Document formatted in Markdown.
-
-## Phase 1: The Diagnostics
-1.  **Ideal Customer Avatar (ICA):** Define exactly who buys from this business (Age, Income, Pain Points, Desires).
-2.  **Competitor Gap Analysis:** Identify 3 things competitors in ${biz.address.split(',').pop()?.trim() || "the area"} are likely doing wrong that we can capitalize on.
-
-## Phase 2: Brand & content Strategy
-**Visual Direction:**
-- Suggest a Color Palette & Typography pairing that screams "Premium".
-- Propose 3 Midjourney/DALL-E prompts to generate high-end social media assets.
-
-**The "Viral" Content Pillars (3 Distinct Angles):**
-1.  *Educational/Authority:* (e.g., "5 Signs You Need a ${biz.type} Immediately").
-2.  *Behind-the-Scenes/Trust:* (e.g., "A Day in the Life," "How We Ensure Quality").
-3.  *Social Proof/Results:* (e.g., "Client Transformation," "Before & After").
-
-## Phase 3: The 30-Day Execution Plan
-- **Week 1: The Foundation.** Profile optimization (Google Business Profile + Bio), Content Batching.
-- **Week 2: The "Pattern Interrupt".** Launch 3 Reels/TikToks using specific hooks provided below.
-- **Week 3: The Offer.** specific "Irresistible Offer" script for this industry to drive immediate calls.
-- **Week 4: The Scale.** Introduction to a low-budget ($10/day) Meta Ads strategy for local retargeting.
-
-## Bonus: 5 "Copy-Paste" Video Hooks
-Write 5 exact scripts (Hook -> Value -> CTA) for short-form video content tailored to the ${biz.type} niche.`;
-
-        // 3. Website Outreach (Email + Call)
-        const websiteEmail = `Subject: Quick question about ${biz.title}'s website
+        // 3. Website Outreach (Hyper-Personalized)
+        const websiteEmail = `Subject: I built ${biz.title} a high-performance prototype (Preview inside)
 
 Hi ${biz.title} Team,
 
-I was searching for ${biz.type} services in ${biz.address.split(',')[0]} and came across your business.
+I've been analyzing the ${primaryBusinessTerm} sector in ${location}. While ${biz.title} has an incredible reputation, your current digital footprint isn't capturing the high-value leads you deserve.
 
-I noticed that you ${biz.website ? "have a website that could use a modern refresh" : "don't have a website yet"}, which might be causing you to miss out on local customers searching on Google.
+I've taken the liberty of architecting a minimalist, high-conversion landing page prototype for you. It's built on a modern stack (${node.techStack}) designed to load in under 500ms—faster than 99% of your local competitors.
 
-I'm a local web developer who specializes in building high-conversion websites for ${biz.type} businesses. I've actually already mocked up a homepage concept for you that shows how we can get you more booked appointments.
-
-Do you have a few minutes this week to take a look? I'd love to send it over.
-
-Best regards,
-[Your Name]
-Web Design Specialist`;
-
-        const websiteCallScript = `**Cold Call Script for Website Services**
-
-**Intro:**
-"Hi, this is [Your Name], I'm a local developer here in the area. am I speaking with the owner or manager?"
-
-**The Hook:**
-"Great. The reason I'm calling is I was actually looking for a ${biz.type} online and noticed you guys ${biz.website ? "have an older site" : "don't have a website up yet"}.
-
-**The Value:**
-"I work with other ${biz.type} businesses to help them rank higher on Google and get more calls. I've actually put together a quick design mockup for your business specifically.
-
-**The Ask:**
-"I'm not trying to sell you anything right now, I just want to send this mockup over so you can see what I'm talking about. What's the best email to send that to?"`;
-
-        // 4. Marketing Outreach (Email + Call)
-        const marketingEmail = `Subject: 3 ideas to grow ${biz.title} in the next 30 days
-
-Hi ${biz.title} Team,
-
-I've been analyzing the ${biz.type} market in ${biz.address.split(',')[0]} and noticed a few opportunities that your competitors aren't taking advantage of yet.
-
-I specialize in helping local businesses like yours dominate social media and get more leads. I put together a 30-day "Market Domination" strategy specifically for ${biz.title}.
-
-It includes tailored video topics and a plan to get you more reviews and customers.
-
-Are you open to me sending this strategy over for you to review? No strings attached.
+I'd love to show you the "Live Preview" of what I've built for ${biz.title}. Are you open to a 30-second walkthrough?
 
 Best,
 [Your Name]
-Growth Partner`;
+Senior Product Architect`;
 
-        const marketingCallScript = `**Cold Call Script for SMMA/Growth**
+        const websiteCallScript = `**Cold Call Script (High Authority)**
 
-**Intro:**
-"Hi, this is [Your Name]. I help local businesses here in ${biz.address.split(',')[0]} get more customers through social media.
+**Intro:** "Hi, I'm [Your Name], I'm a local software developer. I'm calling because I've actually just finished building a custom landing page prototype for ${biz.title}."
 
-**The Hook:**
-"I was checking out your online presence and saw you have a great reputation ${biz.rating ? `(${biz.rating} stars!)` : ""}, but I think we can get you in front of way more people.
+**The Hook:** "I noticed your current site/presence is losing you local business to slower competitors. I've architected a brand new, ultra-fast version that's designed specifically to double your booking rate in ${location}."
 
-**The Value:**
-"I've sketched out a 30-day growth plan that covers exactly how to get more booked appointments using short-form video. It's working really well for others in your industry right now.
+**The Ask:** "I've got the live link ready on my screen. I'm not selling a package—I just want to send this over so you can see the difference. What's the best email for the owner?"`;
 
-**The Ask:**
-"I'd love to drop this plan off or email it to you so you can check it out. Would you be opposed to taking a look?"`;
+        // 4. Marketing Outreach (Hyper-Personalized)
+        const marketingEmail = `Subject: ${biz.title}'s 30-Day Viral Strategy is ready
+
+Hi ${biz.title} Team,
+
+Local marketing for ${primaryBusinessTerm} businesses has changed. Generic ads don't work anymore—hyper-local social authority does.
+
+I've mapped out a 30-day "Market Domination" roadmap for ${biz.title} that leverages short-form video to reach every potential customer in ${location}. 
+
+I have a strategic brief and 5 specific video scripts ready for you to film on your phone today. Would you like me to send the roadmap over?
+
+Cheers,
+[Your Name]
+Growth Strategist`;
+
+        const marketingCallScript = `**Cold Call Script (Growth Specialist)**
+
+**Intro:** "Hi, this is [Your Name]. I help ${primaryBusinessTerm} businesses in ${location} dominate social media."
+
+**The Hook:** "I've identified the exact content gaps ${biz.title} is missing that your local competitors are starting to fill. I've put together a 30-day roadmap with specific video hooks that will put you back on top."
+
+**The Ask:** "I have the PDF brief ready for you. Would you be opposed to me emailing it over for you to review tonight?"`;
 
         setGeneratedPrompts({
             websitePrompt,
@@ -1070,6 +1160,7 @@ Growth Partner`;
         });
         setIsGenerating(false);
     }, []);
+
 
     // --- Logic: 5. Client-Side Filtering & Sorting ---
 
@@ -1149,10 +1240,10 @@ Growth Partner`;
     // --- Render ---
 
     return (
-        <div className="bg-slate-900 text-slate-200 font-sans pb-20 selection:bg-blue-500 selection:text-white" style={{ contain: 'layout style' }}>
+        <div className="bg-slate-900 text-slate-200 font-sans pb-20 selection:bg-blue-500 selection:text-white">
 
             {/* Decorative Background Elements - Using will-change and transform for GPU acceleration */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ willChange: 'auto', contain: 'strict' }}>
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[80px]" style={{ transform: 'translateZ(0)' }}></div>
                 <div className="absolute bottom-[10%] right-[-5%] w-[30%] h-[30%] bg-indigo-600/10 rounded-full blur-[60px]" style={{ transform: 'translateZ(0)' }}></div>
             </div>
@@ -1337,8 +1428,8 @@ Growth Partner`;
                         </div>
 
                         {/* Table - Optimized with CSS containment */}
-                        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700 overflow-hidden mb-8" style={{ contain: 'content' }}>
-                            <div className="overflow-x-auto overflow-y-visible custom-scrollbar" style={{ contain: 'layout' }}>
+                        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700 overflow-hidden mb-8">
+                            <div className="overflow-x-auto overflow-y-visible custom-scrollbar">
                                 <table className="w-full text-left text-sm text-slate-400" style={{ tableLayout: 'fixed' }}>
                                     <thead className="bg-slate-900/50 border-b border-slate-700 text-xs uppercase font-semibold text-slate-500">
                                         <tr>
@@ -1443,21 +1534,32 @@ Growth Partner`;
                                     </div>
 
                                     {/* Website Outreach Section */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-4">
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
                                                 <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                                                    <Mail className="w-3 h-3" /> Cold Email
+                                                    <Mail className="text-blue-400 w-3 h-3" /> Cold Email
                                                 </h5>
-                                                <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(generatedPrompts.websiteEmail);
-                                                        showToast("Website Email copied!");
-                                                    }}
-                                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
-                                                >
-                                                    Copy
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            const subject = `I built ${selectedBusiness.title} a high-performance prototype (Preview inside)`;
+                                                            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(generatedPrompts.websiteEmail)}`;
+                                                        }}
+                                                        className="text-[10px] bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 px-2.5 py-1 rounded border border-blue-500/30 transition-colors flex items-center gap-1.5"
+                                                    >
+                                                        <ExternalLink className="w-3 h-3" /> Send
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(generatedPrompts.websiteEmail);
+                                                            showToast("Website Email copied!");
+                                                        }}
+                                                        className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
+                                                    >
+                                                        Copy
+                                                    </button>
+                                                </div>
                                             </div>
                                             <textarea
                                                 readOnly
@@ -1465,10 +1567,23 @@ Growth Partner`;
                                                 className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
                                             />
                                         </div>
+                                        {selectedBusiness.phone && (
+                                            <button
+                                                onClick={() => {
+                                                    const cleanPhone = selectedBusiness.phone!.replace(/\D/g, '');
+                                                    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(generatedPrompts.websiteEmail)}`, '_blank');
+                                                }}
+                                                className="w-full bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-500 border border-emerald-500/20 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"
+                                            >
+                                                <MessageSquare className="w-3.5 h-3.5" /> Send via WhatsApp
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="space-y-4">
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between">
                                                 <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                                                    <MessageSquare className="w-3 h-3" /> Call Script
+                                                    <MessageSquare className="text-indigo-400 w-3 h-3" /> Call Script
                                                 </h5>
                                                 <button
                                                     onClick={() => {
@@ -1486,6 +1601,14 @@ Growth Partner`;
                                                 className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
                                             />
                                         </div>
+                                        {selectedBusiness.phone && (
+                                            <a
+                                                href={`tel:${selectedBusiness.phone}`}
+                                                className="w-full bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"
+                                            >
+                                                <Phone className="w-3.5 h-3.5" /> Start Cold Call
+                                            </a>
+                                        )}
                                     </div>
 
                                     {/* Marketing Prompt Section */}
@@ -1518,47 +1641,81 @@ Growth Partner`;
 
                                     {/* Marketing Outreach Section */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                                                    <Mail className="w-3 h-3" /> Cold Email
-                                                </h5>
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                                        <Mail className="text-pink-400 w-3 h-3" /> Cold Email
+                                                    </h5>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                const subject = `${selectedBusiness.title}'s 30-Day Viral Strategy is ready`;
+                                                                window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(generatedPrompts.marketingEmail)}`;
+                                                            }}
+                                                            className="text-[10px] bg-pink-600/20 hover:bg-pink-600/40 text-pink-400 px-2.5 py-1 rounded border border-pink-500/30 transition-colors flex items-center gap-1.5"
+                                                        >
+                                                            <ExternalLink className="w-3 h-3" /> Send
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(generatedPrompts.marketingEmail);
+                                                                showToast("Marketing Email copied!");
+                                                            }}
+                                                            className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
+                                                        >
+                                                            Copy
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <textarea
+                                                    readOnly
+                                                    value={generatedPrompts.marketingEmail}
+                                                    className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
+                                                />
+                                            </div>
+                                            {selectedBusiness.phone && (
                                                 <button
                                                     onClick={() => {
-                                                        navigator.clipboard.writeText(generatedPrompts.marketingEmail);
-                                                        showToast("Marketing Email copied!");
+                                                        const cleanPhone = selectedBusiness.phone!.replace(/\D/g, '');
+                                                        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(generatedPrompts.marketingEmail)}`, '_blank');
                                                     }}
-                                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
+                                                    className="w-full bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-500 border border-emerald-500/20 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"
                                                 >
-                                                    Copy
+                                                    <MessageSquare className="w-3.5 h-3.5" /> Send via WhatsApp
                                                 </button>
-                                            </div>
-                                            <textarea
-                                                readOnly
-                                                value={generatedPrompts.marketingEmail}
-                                                className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
-                                            />
+                                            )}
                                         </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                                                    <MessageSquare className="w-3 h-3" /> Call Script
-                                                </h5>
-                                                <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(generatedPrompts.marketingCallScript);
-                                                        showToast("Marketing Call Script copied!");
-                                                    }}
-                                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
-                                                >
-                                                    Copy
-                                                </button>
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <h5 className="text-slate-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                                                        <MessageSquare className="text-violet-400 w-3 h-3" /> Call Script
+                                                    </h5>
+                                                    <button
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(generatedPrompts.marketingCallScript);
+                                                            showToast("Marketing Call Script copied!");
+                                                        }}
+                                                        className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-1 rounded border border-slate-700 transition-colors"
+                                                    >
+                                                        Copy
+                                                    </button>
+                                                </div>
+                                                <textarea
+                                                    readOnly
+                                                    value={generatedPrompts.marketingCallScript}
+                                                    className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
+                                                />
                                             </div>
-                                            <textarea
-                                                readOnly
-                                                value={generatedPrompts.marketingCallScript}
-                                                className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
-                                            />
+                                            {selectedBusiness.phone && (
+                                                <a
+                                                    href={`tel:${selectedBusiness.phone}`}
+                                                    className="w-full bg-violet-600/10 hover:bg-violet-600/20 text-violet-400 border border-violet-500/20 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"
+                                                >
+                                                    <Phone className="w-3.5 h-3.5" /> Start Cold Call
+                                                </a>
+                                            )}
                                         </div>
                                     </div>
 
