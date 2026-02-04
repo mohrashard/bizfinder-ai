@@ -44,75 +44,151 @@ const COUNTRIES: Record<string, LocationData> = {
     "Japan": {
         cities: ["Tokyo", "Osaka", "Kyoto", "Nagoya", "Yokohama", "Kobe", "Fukuoka", "Sapporo", "Hiroshima", "Sendai", "Nara", "Kanazawa", "Nagasaki", "Kumamoto", "Okayama", "Kagoshima", "Matsuyama", "Niigata", "Hamamatsu", "Shizuoka"]
     },
-    "India": {
-        cities: ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad", "Pune", "Jaipur", "Surat", "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna", "Vadodara", "Ghaziabad"]
-    },
     "United Arab Emirates": {
         cities: ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain", "Al Ain", "Khor Fakkan", "Dibba"]
     },
     "Brazil": {
         cities: ["São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza", "Belo Horizonte", "Manaus", "Curitiba", "Recife", "Porto Alegre", "Belém", "Goiânia", "Guarulhos", "Campinas", "São Luís", "São Gonçalo", "Maceió", "Duque de Caxias", "Natal", "Campo Grande"]
+    },
+
+    /* 🔥 HIGH-INCOME / PREMIUM CLIENT MARKETS 🔥 */
+
+    "Switzerland": {
+        cities: ["Zurich", "Geneva", "Basel", "Lausanne", "Bern", "Lugano", "Zug", "Lucerne"]
+    },
+    "Singapore": {
+        cities: ["Singapore"]
+    },
+    "Netherlands": {
+        cities: ["Amsterdam", "Rotterdam", "Utrecht", "The Hague", "Eindhoven", "Haarlem", "Amstelveen"]
+    },
+    "Ireland": {
+        cities: ["Dublin", "Cork", "Galway", "Limerick", "Dún Laoghaire"]
+    },
+    "Sweden": {
+        cities: ["Stockholm", "Gothenburg", "Malmö", "Uppsala", "Lund"]
+    },
+    "Norway": {
+        cities: ["Oslo", "Bergen", "Stavanger", "Trondheim"]
+    },
+    "Denmark": {
+        cities: ["Copenhagen", "Aarhus", "Odense", "Aalborg"]
+    },
+    "Austria": {
+        cities: ["Vienna", "Salzburg", "Innsbruck", "Graz", "Linz"]
+    },
+    "Italy": {
+        cities: ["Milan", "Rome", "Florence", "Turin", "Bologna", "Venice"]
+    },
+    "Spain": {
+        cities: ["Madrid", "Barcelona", "Valencia", "Marbella", "Ibiza", "Palma"]
+    },
+    "Qatar": {
+        cities: ["Doha", "West Bay", "The Pearl", "Lusail"]
+    },
+    "Saudi Arabia": {
+        cities: ["Riyadh", "Jeddah", "NEOM", "Al Khobar", "Dhahran"]
+    },
+    "Monaco": {
+        cities: ["Monte Carlo", "La Condamine", "Fontvieille"]
+    },
+    "South Korea": {
+        cities: ["Seoul", "Gangnam", "Pangyo", "Bundang", "Busan"]
     }
 };
+
 
 // --- Data: Business Types / Niches ---
 
 const BUSINESS_NICHES: string[] = [
-    // Professional Services
-    "Accounting Firm", "Law Firm", "Consulting Agency", "Architecture Firm", "Engineering Consultancy",
-    "Marketing Agency", "PR Agency", "HR Consultancy", "Tax Services", "Financial Advisor",
+    // 🧠 High-Ticket Professional Services (STRONG BUYERS)
+    "Law Firm", "Corporate Law Firm", "Immigration Law Firm", "Personal Injury Law Firm",
+    "Accounting Firm", "CPA Firm", "Tax Advisory Firm",
+    "Financial Advisor", "Wealth Management Firm", "Investment Firm",
+    "Consulting Agency", "Management Consulting", "Strategy Consulting",
+    "Architecture Firm", "Luxury Architecture Studio",
+    "Engineering Consultancy", "Construction Consultancy",
 
-    // Health & Wellness
-    "Dental Clinic", "Medical Practice", "Chiropractic Center", "Physical Therapy", "Mental Health Clinic",
-    "Veterinary Clinic", "Optometry Practice", "Dermatology Clinic", "Pediatric Care", "Urgent Care Center",
-    "Yoga Studio", "Pilates Studio", "Fitness Gym", "CrossFit Box", "Martial Arts Dojo",
-    "Spa & Wellness Center", "Massage Therapy", "Acupuncture Clinic", "Naturopathy Center", "Weight Loss Clinic",
+    // 🏥 Private Healthcare & Clinics (ALWAYS NEED LEADS)
+    "Private Medical Clinic", "Dental Clinic", "Cosmetic Dentistry",
+    "Plastic Surgery Clinic", "Aesthetic Clinic", "Dermatology Clinic",
+    "Chiropractic Center", "Physical Therapy Clinic",
+    "Mental Health Clinic", "Psychology Practice",
+    "Fertility Clinic", "IVF Center",
+    "Veterinary Hospital", "Specialty Vet Clinic",
 
-    // Food & Hospitality
-    "Restaurant", "Café", "Bakery", "Food Truck", "Catering Service",
-    "Bar & Lounge", "Wine Bar", "Brewery Taproom", "Ice Cream Shop", "Juice Bar",
-    "Pizza Shop", "Sushi Restaurant", "Indian Restaurant", "Mexican Restaurant", "Italian Restaurant",
-    "Fast Food", "Fine Dining", "Diner", "Food Delivery", "Ghost Kitchen",
+    // 💄 Beauty, Aesthetics & Luxury Wellness (INSANE ROI)
+    "Medical Spa", "Aesthetic Spa", "Laser Hair Removal Clinic",
+    "Cosmetic Clinic", "Injectables Clinic",
+    "High-End Hair Salon", "Luxury Beauty Salon",
+    "Wellness Retreat", "Holistic Wellness Center",
 
-    // Retail & Shopping
-    "Clothing Boutique", "Jewelry Store", "Electronics Store", "Furniture Store", "Home Decor",
-    "Pet Store", "Sporting Goods", "Book Store", "Gift Shop", "Flower Shop",
-    "Antique Store", "Thrift Shop", "Toy Store", "Music Store", "Art Gallery",
-    "Hardware Store", "Garden Center", "Liquor Store", "Convenience Store", "Supermarket",
+    // 🏗️ Construction, Real Estate & Development (BIG BUDGETS)
+    "Real Estate Agency", "Luxury Real Estate Agency",
+    "Commercial Real Estate Firm",
+    "Property Management Company",
+    "Real Estate Developer",
+    "Construction Company", "General Contractor",
+    "Luxury Home Builder",
+    "Interior Design Studio", "Luxury Interior Design",
+    "Architectural Visualization Studio",
 
-    // Home Services
-    "Plumbing Service", "Electrical Contractor", "HVAC Service", "Roofing Company", "General Contractor",
-    "Landscaping Service", "House Cleaning", "Window Cleaning", "Pest Control", "Pool Service",
-    "Painting Contractor", "Flooring Company", "Kitchen Remodeling", "Bathroom Remodeling", "Home Inspection",
-    "Locksmith", "Moving Company", "Junk Removal", "Handyman Service", "Interior Design",
+    // 🏨 Hospitality, Travel & Lifestyle Brands
+    "Luxury Hotel", "Boutique Hotel", "Resort",
+    "Vacation Rental Company", "Serviced Apartments",
+    "Travel Agency", "Luxury Travel Agency",
+    "Event Management Company", "Wedding Planner",
 
-    // Automotive
-    "Auto Repair Shop", "Car Dealership", "Auto Body Shop", "Tire Shop", "Oil Change Service",
-    "Car Wash", "Auto Detailing", "Towing Service", "Auto Parts Store", "Motorcycle Dealer",
+    // 🚗 Automotive (HIGH LTV, AD-DEPENDENT)
+    "Car Dealership", "Luxury Car Dealership",
+    "Auto Repair Shop", "Specialty Auto Repair",
+    "Auto Detailing Company", "Luxury Auto Detailing",
+    "Car Rental Company", "Luxury Car Rental",
 
-    // Beauty & Personal Care
-    "Hair Salon", "Barbershop", "Nail Salon", "Beauty Spa", "Tanning Salon",
-    "Tattoo Parlor", "Piercing Studio", "Makeup Artist", "Esthetician", "Brow Bar",
+    // 🛠️ Home Services (LEAD-DRIVEN MACHINES)
+    "Plumbing Company", "Electrical Contractor", "HVAC Company",
+    "Roofing Company", "Pest Control Company",
+    "Landscaping Company", "Pool Construction Company",
+    "Home Remodeling Company", "Kitchen Remodeling",
+    "Bathroom Remodeling",
+    "Home Inspection Company",
+    "Smart Home Installation",
 
-    // Education & Training
-    "Tutoring Service", "Music School", "Dance School", "Art School", "Language School",
-    "Driving School", "Cooking School", "Coding Bootcamp", "Test Prep Center", "Preschool",
+    // 📈 Digital, SaaS & B2B Services (UNDERSTAND VALUE)
+    "Web Design Agency", "Software Development Company",
+    "SaaS Startup", "B2B SaaS Company",
+    "IT Services Company", "Managed IT Services",
+    "Cybersecurity Firm", "Cloud Services Provider",
+    "Digital Marketing Agency", "SEO Agency",
+    "Lead Generation Agency",
 
-    // Entertainment & Recreation
-    "Movie Theater", "Bowling Alley", "Escape Room", "Arcade", "Mini Golf",
-    "Laser Tag", "Trampoline Park", "Go-Kart Track", "Axe Throwing", "Virtual Reality Arcade",
+    // 🎓 Education, Training & High-End Coaching
+    "Private School", "International School",
+    "Online Education Platform",
+    "Coaching Business", "Business Coach",
+    "Executive Coaching",
+    "Online Course Creator", "Training Institute",
 
-    // Professional & Business
-    "Printing Service", "Signage Company", "Web Design Agency", "SEO Agency", "IT Support",
-    "Photography Studio", "Videography", "Graphic Design", "Translation Service", "Staffing Agency",
+    // 🛍️ Premium E-commerce & Brands
+    "Luxury E-commerce Brand",
+    "Direct-to-Consumer Brand",
+    "Jewelry Brand", "Luxury Fashion Brand",
+    "Skincare Brand", "Cosmetics Brand",
 
-    // Real Estate
-    "Real Estate Agency", "Property Management", "Home Staging", "Real Estate Photography", "Mortgage Broker",
+    // 📸 Media, Content & Personal Brands
+    "Photography Studio", "Commercial Photography",
+    "Video Production Company",
+    "Content Studio",
+    "Influencer Brand", "Personal Brand",
 
-    // Other Services
-    "Wedding Planner", "Event Planning", "Travel Agency", "Insurance Agency", "Security Company",
-    "Storage Facility", "Courier Service", "Laundromat", "Dry Cleaning", "Tailor Shop"
+    // 🏢 Corporate & Enterprise Services
+    "Staffing Agency", "Recruitment Firm",
+    "HR Consultancy",
+    "Logistics Company",
+    "Private Security Company",
+    "Facilities Management Company"
 ];
+
 
 // --- Component ---
 

@@ -548,7 +548,6 @@ const BusinessRow = React.memo(({
                 </div>
             </td>
 
-            {/* Web & Rating Column (Right Aligned) */}
             <td className="px-6 py-4 align-top text-right">
                 <div className="flex flex-col items-end gap-2">
                     {biz.website ? (
@@ -591,6 +590,141 @@ const BusinessRow = React.memo(({
         prev.handleGeneratePrompts === next.handleGeneratePrompts;
 });
 BusinessRow.displayName = 'BusinessRow';
+
+const BusinessCard = React.memo(({
+    biz,
+    crmEntry,
+    handleGeneratePrompts,
+    handleOpenCrm
+}: {
+    biz: Business;
+    crmEntry: CRMEntry | undefined;
+    handleGeneratePrompts: (biz: Business) => void;
+    handleOpenCrm: (biz: Business) => void;
+}) => {
+    const score = biz.opportunity_score || 0;
+    const scoreColorClass = score > 70 ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10' : score > 40 ? 'text-amber-500 border-amber-500/20 bg-amber-500/10' : 'text-slate-500 border-slate-700 bg-slate-800/50';
+    const isOpen = biz.open_state?.toLowerCase().includes('open');
+    const isClosed = biz.open_state?.toLowerCase().includes('close');
+    const hasSocials = biz.socials && Object.values(biz.socials).some(v => !!v);
+    const hasStatus = crmEntry?.status && crmEntry.status !== 'New';
+
+    return (
+        <div className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 space-y-4 hover:bg-slate-800/60 transition-all group">
+            {/* Header: Title & Score */}
+            <div className="flex justify-between items-start gap-3">
+                <div className="flex-1">
+                    <div className="font-bold text-white text-lg leading-tight mb-1 group-hover:text-blue-400 transition-colors">{biz.title}</div>
+                    <div className="text-[11px] text-slate-400 bg-slate-900/50 border border-slate-700/50 inline-block px-2 py-0.5 rounded-md uppercase tracking-wide font-semibold">
+                        {biz.type || 'Business'}
+                    </div>
+                </div>
+                <div className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl border-2 font-bold ${scoreColorClass}`}>
+                    <span className="text-lg leading-none">{score}</span>
+                    <span className="text-[8px] uppercase tracking-tighter opacity-70">Score</span>
+                </div>
+            </div>
+
+            {/* Details */}
+            <div className="space-y-2.5">
+                <div className="flex items-start gap-2 text-sm text-slate-300">
+                    <MapPin className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
+                    <span>{biz.address}</span>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                    {biz.phone && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                            <Phone className="w-3.5 h-3.5 text-blue-500/70" />
+                            {biz.phone}
+                        </div>
+                    )}
+                    {biz.rating && (
+                        <div className="flex items-center gap-1 text-xs text-slate-400">
+                            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                            <span className="font-bold text-slate-200">{biz.rating}</span>
+                            <span className="opacity-60">({biz.reviews})</span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border
+                        ${isOpen ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            : isClosed ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                : 'bg-slate-700/50 text-slate-400 border-slate-600'}`}
+                    >
+                        {isOpen ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        {biz.open_state || 'Unknown'}
+                    </div>
+
+                    {biz.website ? (
+                        <a href={biz.website} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 font-bold hover:underline flex items-center gap-1">
+                            <Globe className="w-3 h-3" /> WEBSITE
+                        </a>
+                    ) : (
+                        <span className="text-[10px] text-rose-400/80 font-bold">NO WEBSITE</span>
+                    )}
+                </div>
+            </div>
+
+            {/* Actions Grid */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                    onClick={() => handleOpenCrm(biz)}
+                    className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all border
+                        ${hasStatus
+                            ? 'bg-blue-600/10 border-blue-500/30 text-blue-400'
+                            : 'bg-slate-900 border-slate-700 text-slate-400'}`}
+                >
+                    <Target className="w-3.5 h-3.5" />
+                    {hasStatus ? crmEntry?.status : 'Manage Lead'}
+                </button>
+                <button
+                    onClick={() => handleGeneratePrompts(biz)}
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-br from-violet-600 to-indigo-600 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-95 transition-all"
+                >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Get Prompt
+                </button>
+            </div>
+
+            {/* Socials & Verification */}
+            <div className="flex items-center justify-between border-t border-slate-700/40 pt-4">
+                <div className="flex gap-2.5">
+                    {biz.socials?.facebook && <a href={biz.socials.facebook} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-blue-500 transition-colors"><Facebook className="w-4 h-4" /></a>}
+                    {biz.socials?.instagram && <a href={biz.socials.instagram} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-pink-500 transition-colors"><Instagram className="w-4 h-4" /></a>}
+                    {biz.socials?.twitter && <a href={biz.socials.twitter} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-sky-400 transition-colors"><Globe className="w-4 h-4" /></a>}
+                    {!hasSocials && <span className="text-[10px] text-slate-600 font-medium italic">No Socials</span>}
+                </div>
+                <div className="flex gap-2">
+                    <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(biz.title + " " + biz.address)}`}
+                        target="_blank" rel="noreferrer"
+                        className="p-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
+                        title="Search Google"
+                    >
+                        <Search className="w-3.5 h-3.5" />
+                    </a>
+                    <a
+                        href={`https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(biz.title + " " + biz.address)}`}
+                        target="_blank" rel="noreferrer"
+                        className="p-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
+                        title="LinkedIn"
+                    >
+                        <Linkedin className="w-3.5 h-3.5" />
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+}, (prev, next) => {
+    return prev.biz === next.biz &&
+        prev.crmEntry === next.crmEntry &&
+        prev.handleOpenCrm === next.handleOpenCrm &&
+        prev.handleGeneratePrompts === next.handleGeneratePrompts;
+});
+BusinessCard.displayName = 'BusinessCard';
 
 // --- Main Component ---
 
@@ -1278,31 +1412,31 @@ Growth Strategist`;
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
 
                 {/* Search Hero */}
-                <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <h1 className="text-4xl font-extrabold text-white mb-4 tracking-tight">
-                        Find Business Leads in Seconds
+                <div className="text-center mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <h1 className="text-2xl sm:text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
+                        Find Business Leads <br className="sm:hidden" /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">in Seconds</span>
                     </h1>
-                    <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
-                        The perfect tool for <strong>Digital Marketing Agencies</strong>. Find high-potential leads by searching for <span className="italic text-blue-400">"saloons in New York without social media"</span> or <span className="italic text-blue-400">"mechanics in Dubai with no website"</span>.
+                    <p className="text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-8 px-4">
+                        The perfect tool for <strong>Digital Marketing Agencies</strong>. Find high-potential leads by searching for <span className="italic text-blue-400">"saloons in New York without social media"</span>.
                     </p>
 
-                    <form onSubmit={handleSearch} className="max-w-3xl mx-auto relative group z-10">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Search className="h-6 w-6 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+                    <form onSubmit={handleSearch} className="max-w-3xl mx-auto relative group z-10 px-4">
+                        <div className="absolute inset-y-0 left-7 flex items-center pointer-events-none">
+                            <Search className="h-5 w-5 sm:h-6 sm:w-6 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
                         </div>
                         <input
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="e.g. Italian restaurants in Abu Dhabi with high ratings..."
-                            className="block w-full pl-12 pr-4 py-4 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-2xl shadow-lg shadow-black/20 text-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-slate-800"
+                            placeholder="e.g. Italian restaurants in Abu Dhabi..."
+                            className="block w-full pl-12 sm:pl-14 pr-24 sm:pr-32 py-3 sm:py-4 md:py-5 bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-xl sm:rounded-2xl shadow-lg shadow-black/20 text-sm sm:text-base md:text-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-slate-800"
                         />
                         <button
                             type="submit"
                             disabled={loading}
-                            className="absolute right-2 top-2 bottom-2 bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20"
+                            className="absolute right-6 top-1.5 bottom-1.5 sm:top-2 sm:bottom-2 bg-blue-600 hover:bg-blue-500 text-white px-4 sm:px-6 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20"
                         >
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Search"}
+                            {loading ? <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" /> : "Search"}
                         </button>
                     </form>
 
@@ -1344,17 +1478,16 @@ Growth Strategist`;
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
 
                         {/* Filter Bar */}
-                        <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-slate-700 mb-6 flex flex-wrap gap-4 items-center justify-between">
-                            <div className="flex items-center gap-4 flex-wrap">
-                                <div className="flex items-center gap-2 text-slate-400 text-sm font-medium mr-2">
+                        <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-slate-700 mb-6 flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
+                            <div className="flex items-center gap-3 overflow-x-auto pb-2 lg:pb-0 custom-scrollbar-hide -mx-1 px-1">
+                                <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider whitespace-nowrap mr-2">
                                     <Filter className="w-4 h-4" /> Filters:
                                 </div>
 
-                                {/* Rating Filter */}
                                 <select
                                     value={manualFilters.minRating}
                                     onChange={(e) => setManualFilters({ ...manualFilters, minRating: Number(e.target.value) })}
-                                    className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
+                                    className="bg-slate-950 border border-slate-700 text-slate-300 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 whitespace-nowrap min-w-[120px]"
                                 >
                                     <option value="0">Any Rating</option>
                                     <option value="3.5">3.5+ Stars</option>
@@ -1362,73 +1495,61 @@ Growth Strategist`;
                                     <option value="4.5">4.5+ Stars</option>
                                 </select>
 
-                                {/* Filter Checkboxes (Buttons) */}
                                 <button
                                     onClick={() => setManualFilters({ ...manualFilters, openNow: !manualFilters.openNow })}
-                                    className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${manualFilters.openNow ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 font-medium' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800/80 hover:text-slate-300'}`}
+                                    className={`text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-lg border transition-all whitespace-nowrap ${manualFilters.openNow ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-slate-950 border-slate-700 text-slate-400'}`}
                                 >
                                     Open Now
                                 </button>
                                 <button
-                                    onClick={() => setManualFilters({ ...manualFilters, hasWebsite: !manualFilters.hasWebsite, noWebsite: false })}
-                                    className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${manualFilters.hasWebsite ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 font-medium' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800/80 hover:text-slate-300'}`}
-                                >
-                                    Has Website
-                                </button>
-                                <button
                                     onClick={() => setManualFilters({ ...manualFilters, noWebsite: !manualFilters.noWebsite, hasWebsite: false })}
-                                    className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${manualFilters.noWebsite ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 font-medium' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800/80 hover:text-slate-300'}`}
+                                    className={`text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-lg border transition-all whitespace-nowrap ${manualFilters.noWebsite ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-slate-950 border-slate-700 text-slate-400'}`}
                                 >
                                     No Website
                                 </button>
                                 <button
-                                    onClick={() => setManualFilters({ ...manualFilters, hasSocials: !manualFilters.hasSocials, noSocials: false })}
-                                    className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${manualFilters.hasSocials ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 font-medium' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800/80 hover:text-slate-300'}`}
-                                >
-                                    Has Socials
-                                </button>
-                                <button
                                     onClick={() => setManualFilters({ ...manualFilters, noSocials: !manualFilters.noSocials, hasSocials: false })}
-                                    className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${manualFilters.noSocials ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 font-medium' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800/80 hover:text-slate-300'}`}
+                                    className={`text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-lg border transition-all whitespace-nowrap ${manualFilters.noSocials ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-slate-950 border-slate-700 text-slate-400'}`}
                                 >
                                     No Socials
                                 </button>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 text-slate-400 text-sm">
+                            <div className="flex items-center gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-700/50">
+                                <div className="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-wider whitespace-nowrap">
                                     <ArrowDownWideNarrow className="w-4 h-4" /> Sort:
                                 </div>
                                 <select
                                     value={sortBy}
                                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                     onChange={(e) => setSortBy(e.target.value as any)}
-                                    className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
+                                    className="bg-slate-950 border border-slate-700 text-slate-300 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2 w-full lg:w-auto"
                                 >
                                     <option value="relevance">Relevance</option>
-                                    <option value="opportunity">Opportunity Score (High to Low)</option>
-                                    <option value="rating">Highest Rated</option>
-                                    <option value="reviews">Most Reviews</option>
+                                    <option value="opportunity">Opportunity</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="reviews">Reviews</option>
                                 </select>
                             </div>
                         </div>
 
                         {/* Results Header */}
-                        <div className="flex items-center justify-between mb-4 px-1">
-                            <h2 className="text-xl font-bold text-white">
-                                Found {filteredResults.length} Business{filteredResults.length !== 1 ? 'es' : ''}
+                        <div className="flex items-center justify-between mb-6 px-1">
+                            <h2 className="text-lg sm:text-xl font-bold text-white">
+                                Found {filteredResults.length} <span className="text-blue-400">Leads</span>
                             </h2>
                             <button
                                 onClick={handleExport}
-                                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-lg shadow-emerald-500/20 text-sm"
+                                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3 sm:px-4 py-2 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 text-xs sm:text-sm active:scale-95"
                             >
                                 <Download className="w-4 h-4" />
-                                Export CSV
+                                <span className="hidden sm:inline">Export CSV</span>
+                                <span className="sm:hidden">Export</span>
                             </button>
                         </div>
 
-                        {/* Table - Optimized with CSS containment */}
-                        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700 overflow-hidden mb-8">
+                        {/* Desktop Table View */}
+                        <div className="hidden lg:block bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700 overflow-hidden mb-8">
                             <div className="overflow-x-auto overflow-y-visible custom-scrollbar">
                                 <table className="w-full text-left text-sm text-slate-400" style={{ tableLayout: 'fixed' }}>
                                     <thead className="bg-slate-900/50 border-b border-slate-700 text-xs uppercase font-semibold text-slate-500">
@@ -1459,6 +1580,19 @@ Growth Strategist`;
                             </div>
                         </div>
 
+                        {/* Mobile/Tablet Card View */}
+                        <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                            {filteredResults.map((biz) => (
+                                <BusinessCard
+                                    key={getBusinessId(biz)}
+                                    biz={biz}
+                                    crmEntry={crmData[getBusinessId(biz)]}
+                                    handleGeneratePrompts={handleGeneratePrompts}
+                                    handleOpenCrm={setEditingCrmBiz}
+                                />
+                            ))}
+                        </div>
+
                         {/* Load More Button */}
                         <div className="flex justify-center pb-8">
                             <button
@@ -1480,15 +1614,15 @@ Growth Strategist`;
                     <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar animate-modal-enter flex flex-col">
 
                         {/* Header */}
-                        <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
+                        <div className="px-4 sm:px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
                             <div>
-                                <h3 className="font-bold text-xl text-white flex items-center gap-2">
-                                    <Sparkles className="w-5 h-5 text-violet-400" /> AI Business Prompts
+                                <h3 className="font-bold text-lg sm:text-xl text-white flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-violet-400" /> AI Prompts
                                 </h3>
-                                <p className="text-sm text-slate-400">Generated for <span className="font-semibold text-white">{selectedBusiness.title}</span></p>
+                                <p className="text-[10px] sm:text-sm text-slate-400">For <span className="font-semibold text-white">{selectedBusiness.title}</span></p>
                             </div>
-                            <button onClick={() => { setSelectedBusiness(null); setGeneratedPrompts(null); }} className="text-slate-400 hover:text-white transition-colors">
-                                <X className="w-6 h-6" />
+                            <button onClick={() => { setSelectedBusiness(null); setGeneratedPrompts(null); }} className="text-slate-400 hover:text-white transition-colors p-1">
+                                <X className="w-5 h-5 sm:w-6 sm:h-6" />
                             </button>
                         </div>
 
@@ -1598,13 +1732,13 @@ Growth Strategist`;
                                             <textarea
                                                 readOnly
                                                 value={generatedPrompts.websiteCallScript}
-                                                className="w-full h-32 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
+                                                className="w-full h-32 sm:h-40 bg-slate-950 border border-slate-800 rounded-lg p-3 text-slate-400 text-xs font-mono leading-relaxed focus:ring-1 focus:ring-slate-500 outline-none resize-none custom-scrollbar"
                                             />
                                         </div>
                                         {selectedBusiness.phone && (
                                             <a
                                                 href={`tel:${selectedBusiness.phone}`}
-                                                className="w-full bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all"
+                                                className="w-full bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
                                             >
                                                 <Phone className="w-3.5 h-3.5" /> Start Cold Call
                                             </a>
@@ -1724,10 +1858,10 @@ Growth Strategist`;
                         </div>
 
                         {/* Footer */}
-                        <div className="px-6 py-4 border-t border-slate-800/50 bg-slate-900/50 flex justify-end">
+                        <div className="px-4 sm:px-6 py-4 border-t border-slate-800/50 bg-slate-900/50 flex justify-end">
                             <button
                                 onClick={() => { setSelectedBusiness(null); }}
-                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors"
+                                className="w-full sm:w-auto px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-bold transition-all active:scale-95"
                             >
                                 Close
                             </button>
