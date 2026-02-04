@@ -1374,7 +1374,7 @@ Growth Strategist`;
     // --- Render ---
 
     return (
-        <div className="bg-slate-900 text-slate-200 font-sans pb-20 selection:bg-blue-500 selection:text-white">
+        <div className="bg-slate-900 text-slate-200 font-sans min-h-screen selection:bg-blue-500 selection:text-white">
 
             {/* Decorative Background Elements - Using will-change and transform for GPU acceleration */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">

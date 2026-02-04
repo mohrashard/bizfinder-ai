@@ -83,7 +83,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-slate-900 overflow-x-hidden`}
       >
         <Navbar />
-        <div className="flex-grow">
+        <div className="flex-grow bg-slate-900">
           {children}
         </div>
 
@@ -92,8 +92,10 @@ export default function RootLayout({
             <p className="text-slate-500 text-sm">
               &copy; {new Date().getFullYear()} BizFinder AI. All rights reserved.
             </p>
-            <p className="text-slate-400 text-sm mt-2 font-medium">
-              Developed by <a href="https://mohamedrashard.vercel.app/" target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 hover:underline transition-colors">Mr² Labs</a>
+            <p className="text-slate-400 text-sm mt-2 font-medium flex items-center justify-center gap-4">
+              <span>Developed by <a href="https://www.mohamedrashard.dev/labs" target="_blank" rel="noreferrer" className="text-cyan-400 hover:text-cyan-300 hover:underline transition-colors">Mr² Labs</a></span>
+
+
             </p>
           </div>
         </footer>
