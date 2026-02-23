@@ -47,6 +47,7 @@ interface Business {
     type?: string;
     open_state?: string;
     hours?: string;
+    data_id?: string;
     gps_coordinates?: {
         latitude: number;
         longitude: number;
@@ -71,6 +72,7 @@ interface SearchParams {
         minRating?: number;
         noSocials?: boolean;
         hasSocials?: boolean;
+        hasEmail?: boolean;
     };
 }
 
@@ -206,6 +208,7 @@ const processSerpResult = (item: any): Business => {
         type: item.type,
         open_state: item.open_state,
         hours: item.hours,
+        data_id: item.data_id,
         gps_coordinates: item.gps_coordinates,
         email: item.email,
         socials,
@@ -603,117 +606,212 @@ const BusinessCard = React.memo(({
     handleOpenCrm: (biz: Business) => void;
 }) => {
     const score = biz.opportunity_score || 0;
-    const scoreColorClass = score > 70 ? 'text-emerald-500 border-emerald-500/20 bg-emerald-500/10' : score > 40 ? 'text-amber-500 border-amber-500/20 bg-amber-500/10' : 'text-slate-500 border-slate-700 bg-slate-800/50';
     const isOpen = biz.open_state?.toLowerCase().includes('open');
     const isClosed = biz.open_state?.toLowerCase().includes('close');
     const hasSocials = biz.socials && Object.values(biz.socials).some(v => !!v);
     const hasStatus = crmEntry?.status && crmEntry.status !== 'New';
 
+    // Dynamic gradient/glow based on score
+    const scoreGradient = score > 70
+        ? 'from-emerald-500 to-teal-400'
+        : score > 40
+            ? 'from-amber-500 to-orange-400'
+            : 'from-slate-500 to-slate-400';
+    const scoreGlow = score > 70
+        ? 'shadow-emerald-500/30'
+        : score > 40
+            ? 'shadow-amber-500/30'
+            : 'shadow-slate-500/10';
+    const scoreBorderHover = score > 70
+        ? 'group-hover:border-emerald-500/30'
+        : score > 40
+            ? 'group-hover:border-amber-500/30'
+            : 'group-hover:border-slate-600';
+
     return (
-        <div className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-5 space-y-4 hover:bg-slate-800/60 transition-all group">
-            {/* Header: Title & Score */}
-            <div className="flex justify-between items-start gap-3">
-                <div className="flex-1">
-                    <div className="font-bold text-white text-lg leading-tight mb-1 group-hover:text-blue-400 transition-colors">{biz.title}</div>
-                    <div className="text-[11px] text-slate-400 bg-slate-900/50 border border-slate-700/50 inline-block px-2 py-0.5 rounded-md uppercase tracking-wide font-semibold">
-                        {biz.type || 'Business'}
+        <div className={`group relative bg-slate-900/60 backdrop-blur-xl border border-slate-700/40 rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/5 ${scoreBorderHover}`}>
+            {/* Top gradient accent line */}
+            <div className={`h-1 w-full bg-gradient-to-r ${scoreGradient} opacity-60 group-hover:opacity-100 transition-opacity`} />
+
+            <div className="p-5 space-y-4">
+                {/* Header Row: Title + Score Badge */}
+                <div className="flex justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-white text-[17px] leading-snug mb-1.5 group-hover:text-blue-300 transition-colors truncate">
+                            {biz.title}
+                        </h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[10px] text-slate-300 bg-slate-800/80 border border-slate-700/60 px-2.5 py-0.5 rounded-full uppercase tracking-wider font-semibold">
+                                {biz.type || 'Business'}
+                            </span>
+                            <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors
+                                ${isOpen ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                    : isClosed ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                        : 'bg-slate-800/50 text-slate-400 border-slate-700'}`}
+                            >
+                                {isOpen ? <CheckCircle2 className="w-2.5 h-2.5" /> : <XCircle className="w-2.5 h-2.5" />}
+                                {biz.open_state || 'Unknown'}
+                            </div>
+                        </div>
+                    </div>
+                    {/* Floating Score Badge */}
+                    <div className={`relative flex flex-col items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${scoreGradient} shadow-lg ${scoreGlow} text-white flex-shrink-0`}>
+                        <span className="text-xl font-extrabold leading-none">{score}</span>
+                        <span className="text-[7px] uppercase tracking-widest opacity-80 font-bold">Score</span>
                     </div>
                 </div>
-                <div className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl border-2 font-bold ${scoreColorClass}`}>
-                    <span className="text-lg leading-none">{score}</span>
-                    <span className="text-[8px] uppercase tracking-tighter opacity-70">Score</span>
-                </div>
-            </div>
 
-            {/* Details */}
-            <div className="space-y-2.5">
-                <div className="flex items-start gap-2 text-sm text-slate-300">
-                    <MapPin className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
-                    <span>{biz.address}</span>
+                {/* Location */}
+                <div className="flex items-start gap-2 text-sm text-slate-400">
+                    <MapPin className="w-3.5 h-3.5 text-blue-400/60 mt-0.5 flex-shrink-0" />
+                    <span className="leading-snug line-clamp-2">{biz.address}</span>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
+                {/* Contact Chips Row */}
+                <div className="flex flex-wrap gap-2">
                     {biz.phone && (
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                            <Phone className="w-3.5 h-3.5 text-blue-500/70" />
-                            {biz.phone}
+                        <div className="flex items-center gap-1.5 bg-slate-800/60 border border-slate-700/50 px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:bg-slate-700/60 transition-colors cursor-default">
+                            <Phone className="w-3 h-3 text-blue-400" />
+                            <span className="select-all">{biz.phone}</span>
                         </div>
                     )}
-                    {biz.rating && (
-                        <div className="flex items-center gap-1 text-xs text-slate-400">
-                            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                            <span className="font-bold text-slate-200">{biz.rating}</span>
-                            <span className="opacity-60">({biz.reviews})</span>
+                    {biz.email ? (
+                        <div className="flex items-center gap-1.5 bg-emerald-500/5 border border-emerald-500/20 px-2.5 py-1.5 rounded-lg text-xs text-emerald-400 hover:bg-emerald-500/10 transition-colors cursor-default">
+                            <Mail className="w-3 h-3" />
+                            <span className="select-all truncate max-w-[140px]">{biz.email}</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1.5 bg-slate-800/40 border border-slate-700/30 px-2.5 py-1.5 rounded-lg text-xs text-slate-600 italic">
+                            <Mail className="w-3 h-3 opacity-40" />
+                            No Email
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border
-                        ${isOpen ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                            : isClosed ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-                                : 'bg-slate-700/50 text-slate-400 border-slate-600'}`}
-                    >
-                        {isOpen ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                        {biz.open_state || 'Unknown'}
+                {/* Rating + Website Row */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        {biz.rating ? (
+                            <div className="flex items-center gap-1.5">
+                                <div className="flex items-center">
+                                    {[1, 2, 3, 4, 5].map((s) => (
+                                        <Star
+                                            key={s}
+                                            className={`w-3.5 h-3.5 ${s <= Math.round(biz.rating || 0)
+                                                ? 'text-amber-400 fill-amber-400'
+                                                : 'text-slate-700 fill-slate-700'}`}
+                                        />
+                                    ))}
+                                </div>
+                                <span className="text-xs font-bold text-white">{biz.rating}</span>
+                                <span className="text-[10px] text-slate-500">({biz.reviews || 0})</span>
+                            </div>
+                        ) : (
+                            <span className="text-[10px] text-slate-600 italic">No rating</span>
+                        )}
                     </div>
-
                     {biz.website ? (
-                        <a href={biz.website} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 font-bold hover:underline flex items-center gap-1">
-                            <Globe className="w-3 h-3" /> WEBSITE
+                        <a
+                            href={biz.website}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1.5 text-[11px] text-blue-400 font-semibold hover:text-blue-300 transition-colors group/web"
+                        >
+                            <Globe className="w-3.5 h-3.5" />
+                            <span className="group-hover/web:underline truncate max-w-[120px]">
+                                {biz.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                            </span>
                         </a>
                     ) : (
-                        <span className="text-[10px] text-rose-400/80 font-bold">NO WEBSITE</span>
+                        <span className="text-[10px] text-rose-400/70 font-bold bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
+                            No Website
+                        </span>
                     )}
                 </div>
-            </div>
 
-            {/* Actions Grid */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                    onClick={() => handleOpenCrm(biz)}
-                    className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all border
-                        ${hasStatus
-                            ? 'bg-blue-600/10 border-blue-500/30 text-blue-400'
-                            : 'bg-slate-900 border-slate-700 text-slate-400'}`}
-                >
-                    <Target className="w-3.5 h-3.5" />
-                    {hasStatus ? crmEntry?.status : 'Manage Lead'}
-                </button>
-                <button
-                    onClick={() => handleGeneratePrompts(biz)}
-                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-br from-violet-600 to-indigo-600 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-95 transition-all"
-                >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Get Prompt
-                </button>
-            </div>
+                {/* Opportunity Factors */}
+                {(biz.opportunity_factors || []).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                        {(biz.opportunity_factors || []).slice(0, 3).map((f, i) => (
+                            <span key={i} className="text-[9px] bg-slate-800/60 border border-slate-700/40 px-2 py-0.5 rounded-md text-slate-400 whitespace-nowrap" title={f}>
+                                {f}
+                            </span>
+                        ))}
+                        {(biz.opportunity_factors?.length || 0) > 3 && (
+                            <span className="text-[9px] text-blue-400/70 px-1" title={biz.opportunity_factors?.slice(3).join(', ')}>
+                                +{biz.opportunity_factors!.length - 3} more
+                            </span>
+                        )}
+                    </div>
+                )}
 
-            {/* Socials & Verification */}
-            <div className="flex items-center justify-between border-t border-slate-700/40 pt-4">
-                <div className="flex gap-2.5">
-                    {biz.socials?.facebook && <a href={biz.socials.facebook} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-blue-500 transition-colors"><Facebook className="w-4 h-4" /></a>}
-                    {biz.socials?.instagram && <a href={biz.socials.instagram} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-pink-500 transition-colors"><Instagram className="w-4 h-4" /></a>}
-                    {biz.socials?.twitter && <a href={biz.socials.twitter} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-sky-400 transition-colors"><Globe className="w-4 h-4" /></a>}
-                    {!hasSocials && <span className="text-[10px] text-slate-600 font-medium italic">No Socials</span>}
+                {/* Divider */}
+                <div className="border-t border-slate-700/30" />
+
+                {/* Social Icons + Quick Links */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        {biz.socials?.facebook && (
+                            <a href={biz.socials.facebook} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg bg-slate-800/50 text-slate-500 hover:text-blue-500 hover:bg-blue-500/10 transition-all" title="Facebook">
+                                <Facebook className="w-3.5 h-3.5" />
+                            </a>
+                        )}
+                        {biz.socials?.instagram && (
+                            <a href={biz.socials.instagram} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg bg-slate-800/50 text-slate-500 hover:text-pink-500 hover:bg-pink-500/10 transition-all" title="Instagram">
+                                <Instagram className="w-3.5 h-3.5" />
+                            </a>
+                        )}
+                        {biz.socials?.twitter && (
+                            <a href={biz.socials.twitter} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg bg-slate-800/50 text-slate-500 hover:text-sky-400 hover:bg-sky-400/10 transition-all" title="Twitter/X">
+                                <Globe className="w-3.5 h-3.5" />
+                            </a>
+                        )}
+                        {biz.socials?.linkedin && (
+                            <a href={biz.socials.linkedin} target="_blank" rel="noreferrer" className="p-1.5 rounded-lg bg-slate-800/50 text-slate-500 hover:text-blue-600 hover:bg-blue-600/10 transition-all" title="LinkedIn">
+                                <Linkedin className="w-3.5 h-3.5" />
+                            </a>
+                        )}
+                        {!hasSocials && <span className="text-[10px] text-slate-600 italic pl-1">No socials found</span>}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                        <a
+                            href={`https://www.google.com/search?q=${encodeURIComponent(biz.title + " " + biz.address)}`}
+                            target="_blank" rel="noreferrer"
+                            className="p-1.5 rounded-lg bg-slate-800/50 border border-slate-700/40 text-slate-500 hover:text-white hover:bg-slate-700/60 transition-all"
+                            title="Search Google"
+                        >
+                            <Search className="w-3 h-3" />
+                        </a>
+                        <a
+                            href={`https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(biz.title)}`}
+                            target="_blank" rel="noreferrer"
+                            className="p-1.5 rounded-lg bg-slate-800/50 border border-slate-700/40 text-slate-500 hover:text-white hover:bg-slate-700/60 transition-all"
+                            title="LinkedIn Search"
+                        >
+                            <Linkedin className="w-3 h-3" />
+                        </a>
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                    <a
-                        href={`https://www.google.com/search?q=${encodeURIComponent(biz.title + " " + biz.address)}`}
-                        target="_blank" rel="noreferrer"
-                        className="p-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
-                        title="Search Google"
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                    <button
+                        onClick={() => handleOpenCrm(biz)}
+                        className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all border active:scale-95
+                            ${hasStatus
+                                ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 hover:bg-blue-600/20'
+                                : 'bg-slate-800/60 border-slate-700/50 text-slate-300 hover:bg-slate-700/60 hover:text-white'}`}
                     >
-                        <Search className="w-3.5 h-3.5" />
-                    </a>
-                    <a
-                        href={`https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(biz.title + " " + biz.address)}`}
-                        target="_blank" rel="noreferrer"
-                        className="p-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors"
-                        title="LinkedIn"
+                        <Target className="w-3.5 h-3.5" />
+                        {hasStatus ? crmEntry?.status : 'Manage Lead'}
+                    </button>
+                    <button
+                        onClick={() => handleGeneratePrompts(biz)}
+                        className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:shadow-lg hover:shadow-indigo-500/25 active:scale-95 transition-all"
                     >
-                        <Linkedin className="w-3.5 h-3.5" />
-                    </a>
+                        <Sparkles className="w-3.5 h-3.5" />
+                        AI Prompts
+                    </button>
                 </div>
             </div>
         </div>
@@ -751,7 +849,8 @@ function BusinessFinderContent() {
         noWebsite: false,  // true means "Must NOT have website"
         openNow: false,
         hasSocials: false,
-        noSocials: false
+        noSocials: false,
+        hasEmail: false
     });
     const [sortBy, setSortBy] = useState<'relevance' | 'rating' | 'reviews' | 'opportunity'>('opportunity');
 
@@ -932,12 +1031,13 @@ function BusinessFinderContent() {
             "openNow": boolean (true if user asks for open now),
             "minRating": number (optional, if specified e.g. 'best' or '4 star'),
             "noSocials": boolean (true if user specifically asks for businesses WITHOUT social media),
-            "hasSocials": boolean (true if user specifically asks for businesses WITH social media)
+            "hasSocials": boolean (true if user specifically asks for businesses WITH social media),
+            "hasEmail": boolean (true if user specifically asks for businesses WITH email or contact email)
           }
         }
       `;
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKeys.gemini}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKeys.gemini}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -1059,7 +1159,8 @@ function BusinessFinderContent() {
                     noWebsite: params.filters.noWebsite || false,
                     openNow: params.filters.openNow || false,
                     hasSocials: params.filters.hasSocials || false,
-                    noSocials: params.filters.noSocials || false
+                    noSocials: params.filters.noSocials || false,
+                    hasEmail: params.filters.hasEmail || false
                 });
             });
 
@@ -1321,6 +1422,9 @@ Growth Strategist`;
         if (manualFilters.noSocials) {
             res = res.filter(b => !b.socials || Object.values(b.socials).every(v => !v));
         }
+        if (manualFilters.hasEmail) {
+            res = res.filter(b => !!b.email);
+        }
 
         // Sort
         if (sortBy === 'rating') {
@@ -1513,6 +1617,12 @@ Growth Strategist`;
                                 >
                                     No Socials
                                 </button>
+                                <button
+                                    onClick={() => setManualFilters({ ...manualFilters, hasEmail: !manualFilters.hasEmail })}
+                                    className={`text-[11px] font-bold uppercase tracking-wide px-3 py-2 rounded-lg border transition-all whitespace-nowrap ${manualFilters.hasEmail ? 'bg-blue-600/20 border-blue-500/50 text-blue-400' : 'bg-slate-950 border-slate-700 text-slate-400'}`}
+                                >
+                                    Has Email
+                                </button>
                             </div>
 
                             <div className="flex items-center gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-700/50">
@@ -1548,40 +1658,8 @@ Growth Strategist`;
                             </button>
                         </div>
 
-                        {/* Desktop Table View */}
-                        <div className="hidden lg:block bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-700 overflow-hidden mb-8">
-                            <div className="overflow-x-auto overflow-y-visible custom-scrollbar">
-                                <table className="w-full text-left text-sm text-slate-400" style={{ tableLayout: 'fixed' }}>
-                                    <thead className="bg-slate-900/50 border-b border-slate-700 text-xs uppercase font-semibold text-slate-500">
-                                        <tr>
-                                            <th className="px-6 py-4" style={{ width: '15%' }}>Business Name</th>
-                                            <th className="px-6 py-4" style={{ width: '18%' }}>Details</th>
-                                            <th className="px-6 py-4" style={{ width: '13%' }}>Contact</th>
-                                            <th className="px-6 py-4" style={{ width: '13%' }}>Status & Socials</th>
-                                            <th className="px-6 py-4" style={{ width: '10%' }}>CRM</th>
-                                            <th className="px-6 py-4" style={{ width: '13%' }}>Opportunity</th>
-                                            <th className="px-6 py-4 text-right" style={{ width: '18%' }}>Web & Rating</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-700">
-                                        {filteredResults.map((biz, idx) => (
-                                            <BusinessRow
-                                                key={getBusinessId(biz)}
-                                                biz={biz}
-                                                idx={idx}
-                                                crmEntry={crmData[getBusinessId(biz)]}
-                                                updateCRM={updateCRM}
-                                                handleGeneratePrompts={handleGeneratePrompts}
-                                                handleOpenCrm={setEditingCrmBiz}
-                                            />
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Mobile/Tablet Card View */}
-                        <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        {/* Business Cards Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-8">
                             {filteredResults.map((biz) => (
                                 <BusinessCard
                                     key={getBusinessId(biz)}
